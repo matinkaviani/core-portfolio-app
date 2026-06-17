@@ -125,4 +125,26 @@
   .nexus-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+  .nexus-wallpaper-gradient {
+    background-image:
+      radial-gradient(ellipse at 20% 0%, oklch(0.7 0.13 var(--nexus-accent-hue, 240) / 12%), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, oklch(0.7 0.08 280 / 10%), transparent 45%);
+  }
+  .nexus-wallpaper-aurora {
+    background-image:
+      radial-gradient(circle at 10% 20%, oklch(0.65 0.14 200 / 14%), transparent 40%),
+      radial-gradient(circle at 90% 10%, oklch(0.7 0.12 280 / 12%), transparent 35%),
+      radial-gradient(circle at 50% 90%, oklch(0.68 0.1 160 / 10%), transparent 40%);
+  }
+  .nexus-wallpaper-solid {
+    background-image: none;
+  }
+}
+
+html[data-nexus-reduced-motion='on'] *,
+html[data-nexus-reduced-motion='on'] *::before,
+html[data-nexus-reduced-motion='on'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

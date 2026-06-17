@@ -1,16 +1,27 @@
 'use client'
 
+import { APP_ORDER, APPS, type AppId } from '@/lib/os-data'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useOS } from './os-context'
-import { AppWindow } from './app-window'
-import { MenuBar } from './menu-bar'
-import { Dock } from './dock'
-import { APP_ORDER, APPS, PROFILE, type AppId } from '@/lib/os-data'
-import { TerminalApp } from '../apps/terminal-app'
 import { AssistantApp } from '../apps/assistant-app'
-import { ProjectsApp } from '../apps/projects-app'
-import { ExperienceApp } from '../apps/experience-app'
 import { ContactApp } from '../apps/contact-app'
+import { ExperienceApp } from '../apps/experience-app'
+import { FinderApp } from '../apps/finder-app'
+import { ProjectsApp } from '../apps/projects-app'
+import { SettingsApp } from '../apps/settings-app'
+import { TerminalApp } from '../apps/terminal-app'
+import { AppWindow } from './app-window'
+import {
+  isContextMenuExcluded,
+  useContextMenu,
+} from './context-menu'
+import { Dock } from './dock'
+import { MenuBar } from './menu-bar'
+import { useOS } from './os-context'
+import { usePortfolio } from './portfolio-context'
+import { useSettings } from './settings-context'
+import { useDeepLinks } from './use-deep-links'
+import { useGlobalShortcuts } from './use-global-shortcuts'
+import { cn } from '@/lib/utils'
 
 function renderApp(id: AppId) {
   switch (id) {
@@ -24,25 +35,69 @@ function renderApp(id: AppId) {
       return <ExperienceApp />
     case 'contact':
       return <ContactApp />
+    case 'finder':
+      return <FinderApp />
+    case 'settings':
+      return <SettingsApp />
   }
 }
 
-export function Desktop() {
+function wallpaperClass(wallpaper: string) {
+  if (wallpaper === 'gradient') return 'nexus-wallpaper-gradient'
+  if (wallpaper === 'aurora') return 'nexus-wallpaper-aurora'
+  return 'nexus-wallpaper-solid'
+}
+
+export function Desktop({
+  visitorName,
+  ownerName,
+}: {
+  visitorName: string
+  ownerName: string
+}) {
   const { windows, openApp } = useOS()
+  const { profile } = usePortfolio()
+  const { settings } = useSettings()
+  const { openContextMenu } = useContextMenu()
   const hasWindows = windows.length > 0
 
+  useDeepLinks(true)
+  useGlobalShortcuts(true)
+
+  const onDesktopContextMenu = (e: React.MouseEvent) => {
+    if (isContextMenuExcluded(e.target)) return
+    e.preventDefault()
+    openContextMenu(e.clientX, e.clientY, { type: 'desktop' })
+  }
+
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-background nexus-grid">
+    <main
+      className={cn(
+        'relative h-dvh w-full overflow-hidden bg-background',
+        wallpaperClass(settings.wallpaper),
+      )}
+      onContextMenu={onDesktopContextMenu}
+    >
       <MenuBar />
 
-      {/* ambient corner glow, subtle */}
+      {settings.showGrid && (
+        <div aria-hidden className="nexus-grid pointer-events-none absolute inset-0" />
+      )}
+
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]"
       />
 
       <AnimatePresence>
-        {!hasWindows && <WelcomePanel onOpen={openApp} />}
+        {!hasWindows && (
+          <WelcomePanel
+            profile={profile}
+            visitorName={visitorName}
+            ownerName={ownerName}
+            onOpen={(id) => openApp(id)}
+          />
+        )}
       </AnimatePresence>
 
       <div className="absolute inset-0 pt-9">
@@ -60,7 +115,17 @@ export function Desktop() {
   )
 }
 
-function WelcomePanel({ onOpen }: { onOpen: (id: AppId) => void }) {
+function WelcomePanel({
+  profile,
+  visitorName,
+  ownerName,
+  onOpen,
+}: {
+  profile: { name: string; role: string; bio: string }
+  visitorName: string
+  ownerName: string
+  onOpen: (id: AppId) => void
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -79,11 +144,15 @@ function WelcomePanel({ onOpen }: { onOpen: (id: AppId) => void }) {
             NEXUS · Portfolio OS
           </p>
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            {PROFILE.name}
+            {profile.name}
           </h1>
-          <p className="mt-2 text-lg text-muted-foreground">{PROFILE.role}</p>
+          <p className="mt-2 text-lg text-muted-foreground">{profile.role}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Signed in as <span className="text-foreground">{visitorName}</span> ·{' '}
+            {ownerName}&apos;s desktop
+          </p>
           <p className="mt-4 max-w-prose text-pretty text-sm leading-relaxed text-foreground/70">
-            {PROFILE.bio}
+            {profile.bio}
           </p>
         </motion.div>
 
@@ -124,9 +193,9 @@ function WelcomePanel({ onOpen }: { onOpen: (id: AppId) => void }) {
           transition={{ delay: 0.4 }}
           className="mt-6 text-xs text-muted-foreground"
         >
-          Tip: open the Terminal and type{' '}
-          <span className="font-mono text-primary">help</span>, or chat with the
-          Assistant.
+          Tip: press <span className="font-mono text-primary">⌘K</span> for
+          Spotlight, or open the Terminal and type{' '}
+          <span className="font-mono text-primary">help</span>.
         </motion.p>
       </div>
     </motion.div>

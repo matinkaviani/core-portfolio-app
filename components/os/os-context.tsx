@@ -11,6 +11,8 @@ import {
 } from 'react'
 import { APPS, type AppId } from '@/lib/os-data'
 
+export type AppParams = Record<string, string>
+
 export interface WindowState {
   id: AppId
   x: number
@@ -25,14 +27,18 @@ export interface WindowState {
 interface OSContextValue {
   windows: WindowState[]
   activeId: AppId | null
-  openApp: (id: AppId) => void
+  appParams: Partial<Record<AppId, AppParams>>
+  openApp: (id: AppId, params?: AppParams) => void
   closeApp: (id: AppId) => void
+  closeAllApps: () => void
   focusApp: (id: AppId) => void
   minimizeApp: (id: AppId) => void
   toggleMaximize: (id: AppId) => void
   moveWindow: (id: AppId, x: number, y: number) => void
   resizeWindow: (id: AppId, next: Partial<Pick<WindowState, 'x' | 'y' | 'w' | 'h'>>) => void
   isOpen: (id: AppId) => boolean
+  getAppParams: (id: AppId) => AppParams
+  setAppParams: (id: AppId, params: AppParams) => void
 }
 
 const OSContext = createContext<OSContextValue | null>(null)
@@ -51,8 +57,18 @@ function initialPosition(index: number, w: number, h: number) {
 export function OSProvider({ children }: { children: ReactNode }) {
   const [windows, setWindows] = useState<WindowState[]>([])
   const [activeId, setActiveId] = useState<AppId | null>(null)
+  const [appParams, setAppParamsState] = useState<Partial<Record<AppId, AppParams>>>({})
   const zRef = useRef(10)
   const openCount = useRef(0)
+
+  const setAppParams = useCallback((id: AppId, params: AppParams) => {
+    setAppParamsState((prev) => ({ ...prev, [id]: params }))
+  }, [])
+
+  const getAppParams = useCallback(
+    (id: AppId) => appParams[id] ?? {},
+    [appParams],
+  )
 
   const focusApp = useCallback((id: AppId) => {
     zRef.current += 1
@@ -63,7 +79,10 @@ export function OSProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
-  const openApp = useCallback((id: AppId) => {
+  const openApp = useCallback((id: AppId, params?: AppParams) => {
+    if (params) {
+      setAppParamsState((prev) => ({ ...prev, [id]: params }))
+    }
     setWindows((prev) => {
       const existing = prev.find((w) => w.id === id)
       zRef.current += 1
@@ -96,6 +115,11 @@ export function OSProvider({ children }: { children: ReactNode }) {
   const closeApp = useCallback((id: AppId) => {
     setWindows((prev) => prev.filter((w) => w.id !== id))
     setActiveId((cur) => (cur === id ? null : cur))
+  }, [])
+
+  const closeAllApps = useCallback(() => {
+    setWindows([])
+    setActiveId(null)
   }, [])
 
   const minimizeApp = useCallback((id: AppId) => {
@@ -140,26 +164,34 @@ export function OSProvider({ children }: { children: ReactNode }) {
     () => ({
       windows,
       activeId,
+      appParams,
       openApp,
       closeApp,
+      closeAllApps,
       focusApp,
       minimizeApp,
       toggleMaximize,
       moveWindow,
       resizeWindow,
       isOpen,
+      getAppParams,
+      setAppParams,
     }),
     [
       windows,
       activeId,
+      appParams,
       openApp,
       closeApp,
+      closeAllApps,
       focusApp,
       minimizeApp,
       toggleMaximize,
       moveWindow,
       resizeWindow,
       isOpen,
+      getAppParams,
+      setAppParams,
     ],
   )
 

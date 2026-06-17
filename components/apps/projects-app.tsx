@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { PROJECTS, type ProjectItem } from '@/lib/os-data'
+import { useOS } from '../os/os-context'
+import { usePortfolio } from '../os/portfolio-context'
+import type { ProjectItem } from '@/lib/os-data'
+import { clearDeepLink, copyDeepLink, syncDeepLink } from '../os/use-deep-links'
 import { cn } from '@/lib/utils'
 
 const STATUS_STYLES: Record<ProjectItem['status'], string> = {
@@ -12,7 +15,42 @@ const STATUS_STYLES: Record<ProjectItem['status'], string> = {
 }
 
 export function ProjectsApp() {
-  const [selected, setSelected] = useState<ProjectItem>(PROJECTS[0])
+  const { projects } = usePortfolio()
+  const { getAppParams } = useOS()
+  const params = getAppParams('projects')
+  const initial =
+    projects.find((p) => p.id === params.project) ?? projects[0]
+  const [selected, setSelected] = useState<ProjectItem>(initial)
+
+  useEffect(() => {
+    if (params.project) {
+      const match = projects.find((p) => p.id === params.project)
+      if (match) setSelected(match)
+    }
+  }, [params.project, projects])
+
+  useEffect(() => {
+    syncDeepLink('projects', { project: selected.id })
+  }, [selected.id])
+
+  useEffect(() => {
+    return () => clearDeepLink('projects')
+  }, [])
+
+  const copyLink = async () => {
+    const url = copyDeepLink('projects', { project: selected.id })
+    await navigator.clipboard.writeText(url)
+  }
+
+  const highlights = [
+    ...(selected.challenges?.slice(0, 2).map((item) => ({
+      label: 'Challenge',
+      value: item,
+    })) ?? []),
+    ...(selected.outcome
+      ? [{ label: 'Outcome', value: selected.outcome }]
+      : []),
+  ].slice(0, 3)
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)] md:flex-row">
@@ -21,7 +59,7 @@ export function ProjectsApp() {
           Selected work
         </p>
         <ul className="space-y-1">
-          {PROJECTS.map((p) => (
+          {projects.map((p) => (
             <li key={p.id}>
               <button
                 type="button"
@@ -66,6 +104,13 @@ export function ProjectsApp() {
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">
           {selected.name}
         </h2>
+        <button
+          type="button"
+          onClick={copyLink}
+          className="mt-2 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Copy shareable link
+        </button>
         <p className="mt-1 font-mono text-xs text-muted-foreground">
           {selected.year}
         </p>
@@ -89,19 +134,21 @@ export function ProjectsApp() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {['Architecture', 'Interface', 'Performance'].map((label, i) => (
-            <div
-              key={label}
-              className="rounded-lg border border-border bg-card p-3"
-            >
-              <p className="text-[11px] text-muted-foreground">{label}</p>
-              <p className="mt-1 font-mono text-lg text-foreground">
-                {['A+', '60fps', '< 50ms'][i]}
-              </p>
-            </div>
-          ))}
-        </div>
+        {highlights.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {highlights.map((item) => (
+              <div
+                key={`${item.label}-${item.value}`}
+                className="rounded-lg border border-border bg-card p-3"
+              >
+                <p className="text-[11px] text-muted-foreground">{item.label}</p>
+                <p className="mt-1 text-sm leading-relaxed text-foreground">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   )

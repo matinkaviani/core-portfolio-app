@@ -1,9 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { EXPERIENCE } from '@/lib/os-data'
+import { usePortfolio } from '../os/portfolio-context'
 
 export function ExperienceApp() {
+  const { experience } = usePortfolio()
+
   return (
     <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-6">
       <div className="mb-6">
@@ -16,7 +18,7 @@ export function ExperienceApp() {
       </div>
 
       <ol className="relative ml-2 border-l border-border">
-        {EXPERIENCE.map((e, i) => (
+        {experience.map((e, i) => (
           <motion.li
             key={e.id}
             initial={{ opacity: 0, x: -8 }}

@@ -2,15 +2,18 @@
 
 import { motion } from 'framer-motion'
 import { useOS } from './os-context'
+import { useContextMenu } from './context-menu'
 import { APPS, APP_ORDER } from '@/lib/os-data'
 import { cn } from '@/lib/utils'
 
 export function Dock() {
   const { openApp, isOpen, activeId, focusApp } = useOS()
+  const { openContextMenu } = useContextMenu()
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
       <motion.nav
+        data-nexus-dock
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.5, ease: 'easeOut' }}
@@ -26,6 +29,11 @@ export function Dock() {
               key={id}
               type="button"
               onClick={() => (open ? focusApp(id) : openApp(id))}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                openContextMenu(e.clientX, e.clientY, { type: 'dock', appId: id })
+              }}
               className="group relative flex flex-col items-center"
               aria-label={`Open ${meta.name}`}
             >
@@ -40,7 +48,13 @@ export function Dock() {
                     : 'border-border bg-card text-foreground/80 group-hover:text-foreground',
                 )}
               >
-                {meta.glyph}
+                <span
+                  className={cn(
+                    id === 'settings' && 'text-[22px] leading-none',
+                  )}
+                >
+                  {meta.glyph}
+                </span>
               </motion.span>
               <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] font-medium text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                 {meta.name}

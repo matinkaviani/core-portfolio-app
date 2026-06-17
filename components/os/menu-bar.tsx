@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useOS } from './os-context'
-import { APPS, APP_ORDER, PROFILE, type AppId } from '@/lib/os-data'
+import { usePortfolio } from './portfolio-context'
+import { useSession } from './session-context'
+import { APPS, APP_ORDER, type AppId } from '@/lib/os-data'
 import { useClickOutside } from '@/lib/use-click-outside'
 import { cn } from '@/lib/utils'
 
@@ -35,6 +37,8 @@ export function MenuBar() {
     toggleMaximize,
     focusApp,
   } = useOS()
+  const { profile } = usePortfolio()
+  const { logout } = useSession()
   const now = useClock()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [widget, setWidget] = useState<null | 'clock'>(null)
@@ -49,11 +53,13 @@ export function MenuBar() {
 
   const menus = useMemo<Record<string, MenuItem[]>>(() => {
     return {
-      [PROFILE.name.split(' ')[0]]: [
+      [profile.name.split(' ')[0]]: [
         { label: 'About This Portfolio', action: () => openApp('experience') },
         { divider: true, label: '' },
         { label: 'View Projects', shortcut: '⌘1', action: () => openApp('projects') },
         { label: 'Contact', shortcut: '⌘2', action: () => openApp('contact') },
+        { divider: true, label: '' },
+        { label: 'Log Out', action: () => logout() },
       ],
       File: [
         { label: 'New Terminal', shortcut: '⌘T', action: () => openApp('terminal') },
@@ -99,10 +105,13 @@ export function MenuBar() {
         { label: 'Open Terminal & type "help"', action: () => openApp('terminal') },
         { label: 'Ask the Assistant', action: () => openApp('assistant') },
         { divider: true, label: '' },
-        { label: `Email ${PROFILE.email}`, action: () => openApp('contact') },
+        { label: `Email ${profile.email}`, action: () => openApp('contact') },
       ],
     }
   }, [
+    profile.name,
+    profile.email,
+    logout,
     activeId,
     windows,
     hasActive,
@@ -130,7 +139,10 @@ export function MenuBar() {
   const menuNames = Object.keys(menus)
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] flex h-9 items-center justify-between border-b border-border nexus-glass px-3 text-xs">
+    <header
+      data-nexus-menubar
+      className="fixed inset-x-0 top-0 z-[60] flex h-9 items-center justify-between border-b border-border nexus-glass px-3 text-xs"
+    >
       <div ref={menuRef} className="flex items-center gap-1">
         <div className="flex items-center gap-2 px-2 font-semibold tracking-tight">
           <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
@@ -153,7 +165,6 @@ export function MenuBar() {
                 openMenu === name
                   ? 'bg-secondary text-foreground'
                   : 'hover:bg-secondary/60 hover:text-foreground',
-                // hide the deeper menus on very small screens
                 i > 1 ? 'hidden md:inline-block' : i > 0 ? 'hidden sm:inline-block' : '',
               )}
               aria-haspopup="menu"

@@ -1,19 +1,22 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, type UIMessage } from 'ai'
 import { useOS } from '../os/os-context'
-import { PROFILE } from '@/lib/os-data'
+import { usePortfolio } from '../os/portfolio-context'
+import { useAchievements } from '../os/achievements-context'
+import { buildAssistantGreeting } from '@/lib/ai/persona'
 import { localAnswer } from '@/lib/ai/local-answer'
+import { generateFollowUps } from '@/lib/ai/follow-ups'
 
-const SUGGESTIONS = [
-  'What does Alex work on?',
-  'Tell me about Orbit',
-  'Summarize the experience',
-  'How can I get in touch?',
-]
+interface TraceChunk {
+  id: string
+  source: string
+  title: string
+  preview: string
+}
 
 function textOf(message: UIMessage): string {
   return (message.parts ?? [])
@@ -25,18 +28,46 @@ function textOf(message: UIMessage): string {
 let fid = 0
 
 export function AssistantApp() {
-  const { openApp } = useOS()
-  const [input, setInput] = useState('')
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const { openApp, getAppParams } = useOS()
+  const portfolio = usePortfolio()
+  const { profile } = portfolio
+  const { unlock } = useAchievements()
+  const params = getAppParams('assistant')
 
-  // Local fallback messages, used when the AI endpoint is unavailable.
+  const [input, setInput] = useState('')
+  const [recruiterMode, setRecruiterMode] = useState(
+    params.mode === 'recruiter',
+  )
+  const [jobDescription, setJobDescription] = useState('')
+  const [trace, setTrace] = useState<TraceChunk[]>([])
+  const [followUps, setFollowUps] = useState<string[]>([])
   const [fallback, setFallback] = useState<
     { id: string; role: 'user' | 'assistant'; text: string }[]
   >([])
   const [fallbackMode, setFallbackMode] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (params.mode === 'recruiter') {
+      setRecruiterMode(true)
+      unlock('recruiter')
+    }
+  }, [params.mode, unlock])
+
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: '/api/assistant',
+        body: () => ({
+          mode: recruiterMode ? 'recruiter' : 'default',
+          jobDescription: recruiterMode ? jobDescription : '',
+        }),
+      }),
+    [recruiterMode, jobDescription],
+  )
 
   const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/assistant' }),
+    transport,
     messages: [
       {
         id: 'greeting',
@@ -44,7 +75,7 @@ export function AssistantApp() {
         parts: [
           {
             type: 'text',
-            text: `Hello. I'm NEXUS — the AI assistant for ${PROFILE.name}'s portfolio. What would you like to know?`,
+            text: buildAssistantGreeting(portfolio),
           },
         ],
       },
@@ -58,29 +89,48 @@ export function AssistantApp() {
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth',
     })
-  }, [messages, fallback, busy])
+  }, [messages, fallback, busy, trace, followUps])
 
-  const send = (text: string) => {
+  const fetchTrace = async (query: string) => {
+    try {
+      const res = await fetch('/api/assistant/trace', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ query }),
+      })
+      const data = (await res.json()) as { chunks: TraceChunk[] }
+      setTrace(data.chunks ?? [])
+    } catch {
+      setTrace([])
+    }
+  }
+
+  const send = async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || busy) return
     setInput('')
+    setFollowUps([])
+
+    if (recruiterMode) unlock('recruiter')
 
     if (fallbackMode) {
       const userMsg = { id: `f${++fid}`, role: 'user' as const, text: trimmed }
+      const replyText = localAnswer(portfolio, trimmed)
       const reply = {
         id: `f${++fid}`,
         role: 'assistant' as const,
-        text: localAnswer(trimmed),
+        text: replyText,
       }
       setFallback((m) => [...m, userMsg, reply])
+      setFollowUps(generateFollowUps(portfolio, trimmed, replyText))
       if (/open contact/i.test(trimmed)) openApp('contact')
       return
     }
 
+    await fetchTrace(trimmed)
     sendMessage({ text: trimmed })
   }
 
-  // When the AI endpoint errors, switch to local mode and answer the last query.
   useEffect(() => {
     if (error && !fallbackMode) {
       setFallbackMode(true)
@@ -92,16 +142,33 @@ export function AssistantApp() {
           role: 'assistant',
           text:
             'The live AI service is unavailable right now, so I switched to offline mode. I can still answer from the portfolio data.' +
-            (q ? `\n\n${localAnswer(q)}` : ''),
+            (q ? `\n\n${localAnswer(portfolio, q)}` : ''),
         },
       ])
     }
-  }, [error, fallbackMode, messages])
+  }, [error, fallbackMode, messages, portfolio])
 
-  const showSuggestions =
-    messages.length <= 1 && fallback.length === 0 && !busy
+  useEffect(() => {
+    if (busy || fallbackMode) return
+    const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant')
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+    if (!lastAssistant || !lastUser || lastAssistant.id === 'greeting') return
 
-  // Merge streamed messages with any local-fallback messages for rendering.
+    const q = textOf(lastUser)
+    const a = textOf(lastAssistant)
+    if (a) setFollowUps(generateFollowUps(portfolio, q, a))
+  }, [busy, messages, portfolio, fallbackMode])
+
+  const initialSuggestions = [
+    `What does ${profile.name} work on?`,
+    'Tell me about the Trading Platform',
+    'Summarize the experience',
+    'How can I get in touch?',
+  ]
+
+  const showInitialSuggestions =
+    messages.length <= 1 && fallback.length === 0 && !busy && !recruiterMode
+
   const rendered = [
     ...messages.map((m) => ({
       id: m.id,
@@ -123,12 +190,40 @@ export function AssistantApp() {
           <p className="text-xs text-muted-foreground">
             {fallbackMode
               ? 'Offline mode · portfolio knowledge base'
-              : busy
-                ? 'Thinking…'
-                : `Online · knows everything about ${PROFILE.name}`}
+              : recruiterMode
+                ? 'Recruiter mode · strict portfolio matching'
+                : busy
+                  ? 'Thinking…'
+                  : `Online · knows everything about ${profile.name}`}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setRecruiterMode((v) => !v)}
+          className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+            recruiterMode
+              ? 'border-primary/50 bg-primary/15 text-primary'
+              : 'border-border text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Recruiter
+        </button>
       </div>
+
+      {recruiterMode && (
+        <div className="border-b border-border px-4 py-3">
+          <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Job description
+          </label>
+          <textarea
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            rows={3}
+            placeholder="Paste a role description to match against the portfolio…"
+            className="mt-1.5 w-full resize-none rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary/50"
+          />
+        </div>
+      )}
 
       <div
         ref={scrollRef}
@@ -139,7 +234,6 @@ export function AssistantApp() {
             key={m.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
@@ -155,7 +249,33 @@ export function AssistantApp() {
         ))}
 
         <AnimatePresence>
-          {status === 'submitted' && (
+          {busy && trace.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="rounded-xl border border-border bg-card/80 p-3"
+            >
+              <p className="text-[11px] font-medium uppercase tracking-wider text-primary">
+                Retrieval trace
+              </p>
+              <ul className="mt-2 space-y-2">
+                {trace.map((chunk) => (
+                  <li key={chunk.id} className="text-xs">
+                    <p className="font-medium text-foreground">{chunk.title}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {chunk.source}
+                    </p>
+                    <p className="mt-0.5 text-muted-foreground">{chunk.preview}…</p>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {status === 'submitted' && trace.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -177,14 +297,29 @@ export function AssistantApp() {
         </AnimatePresence>
       </div>
 
-      {showSuggestions && (
+      {showInitialSuggestions && (
         <div className="flex flex-wrap gap-2 px-4 pb-2">
-          {SUGGESTIONS.map((s) => (
+          {initialSuggestions.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => send(s)}
               className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!busy && followUps.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-4 pb-2">
+          {followUps.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => send(s)}
+              className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs text-foreground transition-colors hover:border-primary/50"
             >
               {s}
             </button>
@@ -202,7 +337,11 @@ export function AssistantApp() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask the assistant…"
+          placeholder={
+            recruiterMode
+              ? 'Ask how the portfolio matches this role…'
+              : 'Ask the assistant…'
+          }
           className="flex-1 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
           aria-label="Message the assistant"
         />

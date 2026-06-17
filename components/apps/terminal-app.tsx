@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useOS } from '../os/os-context'
-import { PROFILE, PROJECTS, EXPERIENCE, type AppId } from '@/lib/os-data'
+import { usePortfolio } from '../os/portfolio-context'
+import { useAchievements } from '../os/achievements-context'
+import { useSession } from '../os/session-context'
+import { flattenFiles, buildContentTree } from '@/lib/content/files'
+import type { AppId } from '@/lib/os-data'
 
 interface Line {
   id: number
@@ -13,19 +17,41 @@ interface Line {
 let lineId = 0
 const next = () => ++lineId
 
-const HELP = `Available commands:
+function buildHelp(name: string): string {
+  return `Available commands:
   help          show this list
-  about         who is ${PROFILE.name}
+  about         who is ${name}
   projects      list selected work
   experience    show career timeline
+  skills        show skill set
   contact       how to reach me
-  open <app>    launch an app (assistant, projects, experience, contact)
+  ls            list /content files
+  cat <file>    read a content file
+  chat          open AI assistant
+  open <app>    launch an app
   whoami        current session user
   date          current date and time
-  clear         clear the screen`
+  clear         clear the screen
+  logout        end session and return to login`
+}
+
+const VALID_APPS: AppId[] = [
+  'assistant',
+  'projects',
+  'experience',
+  'contact',
+  'terminal',
+  'finder',
+  'settings',
+]
 
 export function TerminalApp() {
   const { openApp } = useOS()
+  const portfolio = usePortfolio()
+  const { profile, projects, experience, skills } = portfolio
+  const { unlock } = useAchievements()
+  const { logout } = useSession()
+  const files = flattenFiles(buildContentTree(portfolio))
   const [lines, setLines] = useState<Line[]>([
     { id: next(), type: 'system', text: `NEXUS shell — type 'help' to begin.` },
   ])
@@ -48,18 +74,19 @@ export function TerminalApp() {
     if (!cmd) return
     setHistory((h) => [...h, cmd])
     setHIndex(-1)
+    unlock('terminal_master')
 
     const [name, ...args] = cmd.toLowerCase().split(/\s+/)
 
     switch (name) {
       case 'help':
-        push('output', HELP)
+        push('output', buildHelp(profile.name))
         break
       case 'about':
-        push('output', `${PROFILE.name} — ${PROFILE.role}\n${PROFILE.bio}`)
+        push('output', `${profile.name} — ${profile.role}\n${profile.bio}`)
         break
       case 'whoami':
-        push('output', `${PROFILE.handle}@nexus`)
+        push('output', `${profile.handle}@nexus`)
         break
       case 'date':
         push('output', new Date().toString())
@@ -67,38 +94,87 @@ export function TerminalApp() {
       case 'projects':
         push(
           'output',
-          PROJECTS.map(
-            (p) => `${p.name.padEnd(10)} ${p.year}  ${p.category} — ${p.status}`,
-          ).join('\n'),
+          projects
+            .map(
+              (p) =>
+                `${p.name.padEnd(22)} ${p.year}  ${p.category} — ${p.status}`,
+            )
+            .join('\n'),
         )
         break
       case 'experience':
         push(
           'output',
-          EXPERIENCE.map(
-            (e) => `${e.period.padEnd(16)} ${e.role} @ ${e.company}`,
-          ).join('\n'),
+          experience
+            .map(
+              (e) => `${e.period.padEnd(16)} ${e.role} @ ${e.company}`,
+            )
+            .join('\n'),
+        )
+        break
+      case 'skills':
+        push(
+          'output',
+          skills
+            .map((group) => `${group.name}: ${group.skills.join(', ')}`)
+            .join('\n'),
         )
         break
       case 'contact':
         push(
           'output',
-          `email     ${PROFILE.email}\ngithub    ${PROFILE.links.github}\nx         ${PROFILE.links.x}\nlinkedin  ${PROFILE.links.linkedin}`,
+          `email     ${profile.email}\ngithub    ${profile.links.github}\nlinkedin  ${profile.links.linkedin}\nlocation  ${profile.location}`,
         )
         break
+      case 'ls':
+        push(
+          'output',
+          files.map((f) => f.path).join('\n'),
+        )
+        break
+      case 'cat': {
+        const path = args.join(' ')
+        const file = files.find(
+          (f) => f.path === path || f.path.endsWith(`/${path}`),
+        )
+        if (file?.content) {
+          push('output', file.content)
+        } else {
+          push('output', `cat: ${path || '(missing path)'}: No such file`)
+        }
+        break
+      }
+      case 'sudo':
+        unlock('sudo')
+        push(
+          'output',
+          'Nice try. This portfolio runs in user mode only — no root access granted.',
+        )
+        break
+      case 'chat':
+        push('output', 'launching assistant…')
+        openApp('assistant')
+        break
       case 'open': {
-        const valid: AppId[] = ['assistant', 'projects', 'experience', 'contact', 'terminal']
         const target = args[0] as AppId
-        if (valid.includes(target)) {
+        if (VALID_APPS.includes(target)) {
           push('output', `launching ${target}…`)
           openApp(target)
+          if (target === 'finder') unlock('explorer')
         } else {
-          push('output', `open: unknown app '${args[0] ?? ''}'. try: assistant, projects, experience, contact`)
+          push(
+            'output',
+            `open: unknown app '${args[0] ?? ''}'. try: assistant, projects, finder, settings`,
+          )
         }
         break
       }
       case 'clear':
         setLines([])
+        break
+      case 'logout':
+        push('output', 'ending session…')
+        logout()
         break
       default:
         push('output', `command not found: ${name}. type 'help'.`)
@@ -139,7 +215,7 @@ export function TerminalApp() {
         <div key={line.id} className="whitespace-pre-wrap break-words">
           {line.type === 'input' ? (
             <div className="flex gap-2">
-              <span className="text-primary">{PROFILE.handle}@nexus</span>
+              <span className="text-primary">{profile.handle}@nexus</span>
               <span className="text-muted-foreground">~</span>
               <span className="text-foreground">{line.text}</span>
             </div>
@@ -151,7 +227,7 @@ export function TerminalApp() {
         </div>
       ))}
       <div className="flex gap-2">
-        <span className="text-primary">{PROFILE.handle}@nexus</span>
+        <span className="text-primary">{profile.handle}@nexus</span>
         <span className="text-muted-foreground">~</span>
         <input
           ref={inputRef}

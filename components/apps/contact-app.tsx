@@ -2,18 +2,27 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { PROFILE } from '@/lib/os-data'
-
-const CHANNELS = [
-  { label: 'Email', value: PROFILE.email, href: `mailto:${PROFILE.email}` },
-  { label: 'GitHub', value: PROFILE.links.github, href: `https://${PROFILE.links.github}` },
-  { label: 'X', value: PROFILE.links.x, href: `https://${PROFILE.links.x}` },
-  { label: 'LinkedIn', value: PROFILE.links.linkedin, href: `https://${PROFILE.links.linkedin}` },
-]
+import { usePortfolio } from '../os/portfolio-context'
 
 export function ContactApp() {
+  const { profile } = usePortfolio()
   const [sent, setSent] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', message: '' })
+
+  const channels = [
+    { label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
+    {
+      label: 'GitHub',
+      value: profile.links.github,
+      href: `https://${profile.links.github}`,
+    },
+    {
+      label: 'LinkedIn',
+      value: profile.links.linkedin,
+      href: `https://${profile.links.linkedin}`,
+    },
+    { label: 'Location', value: profile.location, href: undefined },
+  ]
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,20 +45,32 @@ export function ContactApp() {
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-2">
-        {CHANNELS.map((c) => (
-          <a
-            key={c.label}
-            href={c.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40"
-          >
-            <p className="text-[11px] text-muted-foreground">{c.label}</p>
-            <p className="mt-0.5 truncate text-sm text-foreground group-hover:text-primary">
-              {c.value}
-            </p>
-          </a>
-        ))}
+        {channels.map((c) =>
+          c.href ? (
+            <a
+              key={c.label}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40"
+            >
+              <p className="text-[11px] text-muted-foreground">{c.label}</p>
+              <p className="mt-0.5 truncate text-sm text-foreground group-hover:text-primary">
+                {c.value}
+              </p>
+            </a>
+          ) : (
+            <div
+              key={c.label}
+              className="rounded-lg border border-border bg-card p-3"
+            >
+              <p className="text-[11px] text-muted-foreground">{c.label}</p>
+              <p className="mt-0.5 truncate text-sm text-foreground">
+                {c.value}
+              </p>
+            </div>
+          ),
+        )}
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-3">
@@ -90,7 +111,7 @@ export function ContactApp() {
             animate={{ opacity: 1 }}
             className="text-center text-xs text-emerald-400"
           >
-            Thanks — I&apos;ll reply to {PROFILE.email} shortly.
+            Thanks — I&apos;ll reply to {profile.email} shortly.
           </motion.p>
         )}
       </form>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, useDragControls } from 'framer-motion'
 import { useOS, type WindowState } from './os-context'
+import { useContextMenu } from './context-menu'
 import { APPS, type AppId } from '@/lib/os-data'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +27,7 @@ export function AppWindow({ win, children }: AppWindowProps) {
     resizeWindow,
     activeId,
   } = useOS()
+  const { openContextMenu } = useContextMenu()
   const meta = APPS[win.id as AppId]
   const active = activeId === win.id
   const dragControls = useDragControls()
@@ -91,50 +93,61 @@ export function AppWindow({ win, children }: AppWindowProps) {
     window.addEventListener('pointerup', onUp)
   }
 
+  // Position is driven entirely by the x/y transform (the same channel drag
+  // uses) so a leftover drag transform can never desync from left/top.
+  // Maximized windows are centered in the usable area between the menu bar
+  // (~36px) and the dock (~88px) with an equal 12px gap on every side.
+  const MENU_BAR = 36
+  const DOCK = 88
+  const GAP = 12
   const geometry = maximized
-    ? { left: 12, top: 44, width: bounds.w - 24, height: bounds.h - 110 }
-    : { left: win.x, top: win.y, width: win.w, height: win.h }
+    ? {
+        x: GAP,
+        y: MENU_BAR + GAP,
+        width: bounds.w - GAP * 2,
+        height: bounds.h - MENU_BAR - DOCK - GAP * 2,
+      }
+    : { x: win.x, y: win.y, width: win.w, height: win.h }
 
   // Minimize target: bottom-center (the dock), shrink + fade down into it.
   const minimizedAnim = {
     opacity: 0,
     scale: 0.18,
-    left: bounds.w / 2 - 60,
-    top: bounds.h - 40,
+    x: bounds.w / 2 - 60,
+    y: bounds.h - 40,
     width: 120,
     height: 80,
   }
 
   return (
     <motion.div
+      data-nexus-window
       drag={!maximized && !resizing}
       dragListener={false}
       dragControls={dragControls}
       dragMomentum={false}
       dragConstraints={{
-        left: -win.x + 4,
-        top: -win.y + 40,
-        right: Math.max(0, bounds.w - win.x - 100),
-        bottom: Math.max(0, bounds.h - win.y - 120),
+        left: 4,
+        top: 40,
+        right: Math.max(4, bounds.w - 100),
+        bottom: Math.max(40, bounds.h - 120),
       }}
       onDragEnd={(_, info) => {
         moveWindow(win.id, win.x + info.offset.x, win.y + info.offset.y)
       }}
-      className={cn('absolute', win.minimized && 'pointer-events-none')}
+      className={cn('absolute left-0 top-0', win.minimized && 'pointer-events-none')}
       style={{ zIndex: win.z }}
-      initial={{ opacity: 0, scale: 0.96, y: 12, ...geometry }}
+      initial={{ opacity: 0, scale: 0.96, ...geometry }}
       animate={
         win.minimized
           ? minimizedAnim
           : {
               opacity: 1,
               scale: 1,
-              y: 0,
-              x: 0,
               ...geometry,
             }
       }
-      exit={{ opacity: 0, scale: 0.94, y: 10 }}
+      exit={{ opacity: 0, scale: 0.94 }}
       transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.9 }}
       onMouseDown={() => !win.minimized && focusApp(win.id)}
     >
@@ -152,6 +165,14 @@ export function AppWindow({ win, children }: AppWindowProps) {
             focusApp(win.id)
           }}
           onDoubleClick={() => toggleMaximize(win.id)}
+          onContextMenu={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            openContextMenu(e.clientX, e.clientY, {
+              type: 'window',
+              appId: win.id,
+            })
+          }}
           className={cn(
             'group/title flex h-10 shrink-0 items-center gap-2 border-b border-border px-3 select-none',
             active ? 'bg-card' : 'bg-card/70',
