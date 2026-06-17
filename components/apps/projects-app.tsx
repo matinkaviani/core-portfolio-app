@@ -54,7 +54,7 @@ export function ProjectsApp() {
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)] md:flex-row">
-      <aside className="nexus-scrollbar shrink-0 overflow-auto border-b border-border p-3 md:w-64 md:border-b-0 md:border-r">
+      <aside className="nexus-scrollbar max-h-44 shrink-0 overflow-auto border-b border-border p-3 md:max-h-none md:w-64 md:border-b-0 md:border-r">
         <p className="px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Selected work
         </p>
@@ -86,9 +86,9 @@ export function ProjectsApp() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="nexus-scrollbar flex-1 overflow-auto p-6"
+        className="nexus-scrollbar flex-1 overflow-auto p-4 sm:p-6"
       >
-        <div className="mb-3 flex items-center gap-3">
+        <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="text-[11px] uppercase tracking-wider text-primary">
             {selected.category}
           </span>

@@ -5,6 +5,7 @@ import { APP_ORDER, type AppId } from '@/lib/os-data'
 import { useOS } from './os-context'
 import { useAchievements } from './achievements-context'
 import { useCommandPalette } from './command-palette'
+import { useContextMenu } from './context-menu'
 
 const KONAMI = [
   'ArrowUp',
@@ -19,10 +20,18 @@ const KONAMI = [
   'a',
 ]
 
+function isEditableTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+  return target.isContentEditable
+}
+
 export function useGlobalShortcuts(enabled: boolean) {
   const { openApp, closeApp, activeId, windows } = useOS()
   const { unlock } = useAchievements()
-  const { openPalette } = useCommandPalette()
+  const { open, openPalette, closePalette } = useCommandPalette()
+  const { isOpen: contextMenuOpen, closeContextMenu } = useContextMenu()
 
   useEffect(() => {
     if (!enabled) return
@@ -31,27 +40,56 @@ export function useGlobalShortcuts(enabled: boolean) {
 
     const onKeyDown = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey
+      const key = e.key.toLowerCase()
+      const typing = isEditableTarget(e.target)
 
-      if (meta && e.key.toLowerCase() === 'k') {
+      if (meta && key === 'k') {
         e.preventDefault()
+        e.stopPropagation()
         openPalette()
         return
       }
 
-      if (meta && e.key.toLowerCase() === 't') {
+      if (e.key === 'Escape') {
+        if (open) {
+          e.preventDefault()
+          e.stopPropagation()
+          closePalette()
+          return
+        }
+        if (contextMenuOpen) {
+          e.preventDefault()
+          e.stopPropagation()
+          closeContextMenu()
+          return
+        }
+        if (activeId) {
+          e.preventDefault()
+          e.stopPropagation()
+          closeApp(activeId)
+          return
+        }
+      }
+
+      // ⌘⇧L — terminal (avoids browser-reserved ⌘T)
+      if (meta && e.shiftKey && key === 'l' && !typing) {
         e.preventDefault()
+        e.stopPropagation()
         openApp('terminal')
         return
       }
 
-      if (meta && e.key.toLowerCase() === 'n') {
+      // ⌘⇧A — assistant (avoids browser-reserved ⌘N / ⌘J)
+      if (meta && e.shiftKey && key === 'a' && !typing) {
         e.preventDefault()
+        e.stopPropagation()
         openApp('assistant')
         return
       }
 
-      if (meta && e.key.toLowerCase() === 'w' && activeId) {
+      if (meta && key === 'w' && activeId) {
         e.preventDefault()
+        e.stopPropagation()
         closeApp(activeId)
         return
       }
@@ -69,9 +107,20 @@ export function useGlobalShortcuts(enabled: boolean) {
       }
     }
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [enabled, openPalette, openApp, closeApp, activeId, unlock])
+    window.addEventListener('keydown', onKeyDown, { capture: true })
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
+  }, [
+    enabled,
+    open,
+    openPalette,
+    closePalette,
+    contextMenuOpen,
+    closeContextMenu,
+    openApp,
+    closeApp,
+    activeId,
+    unlock,
+  ])
 
   useEffect(() => {
     if (!enabled) return

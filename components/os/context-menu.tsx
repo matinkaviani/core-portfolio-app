@@ -42,6 +42,7 @@ interface ContextMenuContextValue {
     target: ContextMenuTarget,
   ) => void
   closeContextMenu: () => void
+  isOpen: boolean
 }
 
 const ContextMenuContext = createContext<ContextMenuContextValue | null>(null)
@@ -87,8 +88,8 @@ export function ContextMenuProvider({ children }: { children: ReactNode }) {
   }, [menu, closeContextMenu])
 
   const value = useMemo(
-    () => ({ openContextMenu, closeContextMenu }),
-    [openContextMenu, closeContextMenu],
+    () => ({ openContextMenu, closeContextMenu, isOpen: menu !== null }),
+    [openContextMenu, closeContextMenu, menu],
   )
 
   return (
@@ -131,12 +132,12 @@ function ContextMenuLayer({
       return [
         {
           label: 'New Terminal',
-          shortcut: '⌘T',
+          shortcut: '⌘⇧L',
           action: () => run(() => os.openApp('terminal')),
         },
         {
           label: 'New Assistant Chat',
-          shortcut: '⌘N',
+          shortcut: '⌘⇧A',
           action: () => run(() => os.openApp('assistant')),
         },
         { divider: true, label: '' },

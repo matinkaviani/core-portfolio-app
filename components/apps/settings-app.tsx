@@ -20,7 +20,7 @@ export function SettingsApp() {
   }
 
   return (
-    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-6">
+    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
       <p className="text-[11px] uppercase tracking-wider text-primary">System</p>
       <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
         Settings

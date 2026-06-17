@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { MotionConfig } from 'framer-motion'
 import {
   applySettingsToDocument,
   DEFAULT_SETTINGS,
@@ -26,7 +27,9 @@ interface SettingsContextValue {
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<NexusSettings>(DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState<NexusSettings>(() =>
+    typeof window !== 'undefined' ? loadSettings() : DEFAULT_SETTINGS,
+  )
 
   useEffect(() => {
     const loaded = loadSettings()
@@ -55,7 +58,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
+    <SettingsContext.Provider value={value}>
+      <MotionConfig reducedMotion={settings.reducedMotion ? 'always' : 'never'}>
+        {children}
+      </MotionConfig>
+    </SettingsContext.Provider>
   )
 }
 
@@ -63,4 +70,9 @@ export function useSettings() {
   const ctx = useContext(SettingsContext)
   if (!ctx) throw new Error('useSettings must be used within SettingsProvider')
   return ctx
+}
+
+export function useReducedMotion() {
+  const { settings } = useSettings()
+  return settings.reducedMotion
 }

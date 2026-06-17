@@ -10,6 +10,11 @@ import {
   type ReactNode,
 } from 'react'
 import { APPS, type AppId } from '@/lib/os-data'
+import {
+  clampWindowSize,
+  getViewportSize,
+  isMobileViewport,
+} from '@/lib/os/viewport'
 
 export type AppParams = Record<string, string>
 
@@ -45,13 +50,16 @@ const OSContext = createContext<OSContextValue | null>(null)
 
 function initialPosition(index: number, w: number, h: number) {
   if (typeof window === 'undefined') {
-    return { x: 120 + index * 36, y: 90 + index * 32 }
+    return { x: 120 + index * 36, y: 90 + index * 32, w, h }
   }
-  const maxX = Math.max(40, window.innerWidth - w - 60)
-  const maxY = Math.max(60, window.innerHeight - h - 140)
-  const x = Math.min(maxX, 100 + index * 40)
-  const y = Math.min(maxY, 80 + index * 34)
-  return { x, y }
+  const { w: vw, h: vh } = getViewportSize()
+  const mobile = isMobileViewport(vw)
+  const clamped = clampWindowSize(w, h, vw, vh, mobile)
+  const maxX = Math.max(8, vw - clamped.w - 8)
+  const maxY = Math.max(40, vh - clamped.h - (mobile ? 80 : 100))
+  const x = Math.min(maxX, mobile ? 8 : 100 + index * 40)
+  const y = Math.min(maxY, mobile ? 44 : 80 + index * 34)
+  return { x, y, w: clamped.w, h: clamped.h }
 }
 
 export function OSProvider({ children }: { children: ReactNode }) {
@@ -93,19 +101,25 @@ export function OSProvider({ children }: { children: ReactNode }) {
         )
       }
       const meta = APPS[id]
+      const mobile = isMobileViewport()
       const pos = initialPosition(openCount.current, meta.size.w, meta.size.h)
       openCount.current += 1
+
+      const nextWindows = mobile
+        ? prev.map((w) => ({ ...w, minimized: true }))
+        : prev
+
       return [
-        ...prev,
+        ...nextWindows,
         {
           id,
           x: pos.x,
           y: pos.y,
-          w: meta.size.w,
-          h: meta.size.h,
+          w: pos.w,
+          h: pos.h,
           z,
           minimized: false,
-          maximized: false,
+          maximized: mobile,
         },
       ]
     })

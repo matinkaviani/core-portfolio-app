@@ -32,7 +32,7 @@ export function ContactApp() {
   }
 
   return (
-    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-6">
+    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
       <p className="text-[11px] uppercase tracking-wider text-primary">
         Get in touch
       </p>
@@ -44,7 +44,7 @@ export function ContactApp() {
         I&apos;ll get back to you.
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {channels.map((c) =>
           c.href ? (
             <a
@@ -74,7 +74,7 @@ export function ContactApp() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
             required
             value={form.name}

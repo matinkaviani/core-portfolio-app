@@ -190,7 +190,7 @@ function CommandPaletteOverlay() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.16 }}
-            className="fixed top-[14%] left-1/2 z-[86] w-[min(92vw,560px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-popover/95 shadow-2xl shadow-black/50 backdrop-blur-xl"
+            className="fixed top-[6%] left-1/2 z-[86] w-[min(calc(100vw-1rem),560px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-popover/95 shadow-2xl shadow-black/50 backdrop-blur-xl sm:top-[14%]"
           >
             <div className="border-b border-border px-4 py-3">
               <input

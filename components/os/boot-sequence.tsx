@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { setStoredVisitor } from '@/lib/os/session'
+import { useReducedMotion } from './settings-context'
 
 const BOOT_LINES = [
   'NEXUS OS v2.4.1 — initializing',
@@ -30,9 +31,17 @@ export function BootSequence({
   const [progress, setProgress] = useState(skipBoot ? 100 : 0)
   const [visitorName, setVisitorName] = useState('')
   const doneRef = useRef(false)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     if (skipBoot || phase !== 'boot') return
+
+    if (reducedMotion) {
+      setVisibleLines(BOOT_LINES.length)
+      setProgress(100)
+      setPhase('login')
+      return
+    }
 
     let raf = 0
     const lineTimers: ReturnType<typeof setTimeout>[] = []
@@ -61,14 +70,14 @@ export function BootSequence({
       cancelAnimationFrame(raf)
       lineTimers.forEach(clearTimeout)
     }
-  }, [phase, skipBoot])
+  }, [phase, skipBoot, reducedMotion])
 
   const signIn = useCallback(() => {
     const name = visitorName.trim() || 'Guest'
     setStoredVisitor(name)
     setPhase('exit')
-    setTimeout(() => onComplete(name), 520)
-  }, [visitorName, onComplete])
+    setTimeout(() => onComplete(name), reducedMotion ? 0 : 520)
+  }, [visitorName, onComplete, reducedMotion])
 
   useEffect(() => {
     if (phase !== 'login') return
@@ -83,7 +92,7 @@ export function BootSequence({
     <AnimatePresence>
       {phase !== 'exit' && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background nexus-grid"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background nexus-grid px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, filter: 'blur(8px)' }}
           transition={{ duration: 0.6, ease: 'easeInOut' }}

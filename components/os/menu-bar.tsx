@@ -1,13 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { useOS } from './os-context'
-import { usePortfolio } from './portfolio-context'
-import { useSession } from './session-context'
 import { APPS, APP_ORDER, type AppId } from '@/lib/os-data'
 import { useClickOutside } from '@/lib/use-click-outside'
 import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCommandPalette } from './command-palette'
+import { useOS } from './os-context'
+import { usePortfolio } from './portfolio-context'
+import { useSession } from './session-context'
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null)
@@ -39,8 +40,10 @@ export function MenuBar() {
   } = useOS()
   const { profile } = usePortfolio()
   const { logout } = useSession()
+  const { openPalette } = useCommandPalette()
   const now = useClock()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [mobileMenu, setMobileMenu] = useState(false)
   const [widget, setWidget] = useState<null | 'clock'>(null)
 
   const activeName = activeId ? APPS[activeId].name : 'Finder'
@@ -48,6 +51,7 @@ export function MenuBar() {
 
   const closeAll = useCallback(() => {
     setOpenMenu(null)
+    setMobileMenu(false)
     setWidget(null)
   }, [])
 
@@ -62,8 +66,8 @@ export function MenuBar() {
         { label: 'Log Out', action: () => logout() },
       ],
       File: [
-        { label: 'New Terminal', shortcut: '⌘T', action: () => openApp('terminal') },
-        { label: 'New Assistant Chat', shortcut: '⌘N', action: () => openApp('assistant') },
+        { label: 'New Terminal', shortcut: '⌘⇧L', action: () => openApp('terminal') },
+        { label: 'New Assistant Chat', shortcut: '⌘⇧A', action: () => openApp('assistant') },
         { divider: true, label: '' },
         {
           label: 'Close Window',
@@ -141,18 +145,37 @@ export function MenuBar() {
   return (
     <header
       data-nexus-menubar
-      className="fixed inset-x-0 top-0 z-[60] flex h-9 items-center justify-between border-b border-border nexus-glass px-3 text-xs"
+      className="fixed inset-x-0 top-0 z-60 backdrop-blur-xs flex min-h-9 items-center justify-between border-b border-border nexus-glass px-2 pt-[env(safe-area-inset-top)] text-xs sm:px-3"
     >
-      <div ref={menuRef} className="flex items-center gap-1">
-        <div className="flex items-center gap-2 px-2 font-semibold tracking-tight">
+      <div ref={menuRef} className="relative flex min-w-0 items-center gap-0.5 sm:gap-1">
+        <div className="flex shrink-0 items-center gap-2 px-1 font-semibold tracking-tight sm:px-2">
           <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
             N
           </span>
           <span className="hidden text-foreground sm:inline">NEXUS</span>
         </div>
 
+        <button
+          type="button"
+          onClick={() => openPalette()}
+          className="rounded-md px-2 py-1.5 font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground md:hidden"
+          aria-label="Open Spotlight"
+        >
+          <span className="font-mono text-[11px] text-primary">⌘K</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenu((v) => !v)}
+          className="rounded-md px-2 py-1.5 font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground md:hidden"
+          aria-label="Open menu"
+          aria-expanded={mobileMenu}
+        >
+          Menu
+        </button>
+
         {menuNames.map((name, i) => (
-          <div key={name} className="relative">
+          <div key={name} className="relative hidden md:block">
             <button
               type="button"
               onClick={() =>
@@ -160,12 +183,11 @@ export function MenuBar() {
               }
               onPointerEnter={() => openMenu && setOpenMenu(name)}
               className={cn(
-                'rounded-md px-2 py-1 font-medium transition-colors',
+                'rounded-md px-2.5 py-1.5 font-medium transition-colors',
                 i === 0 ? 'text-foreground' : 'text-muted-foreground',
                 openMenu === name
                   ? 'bg-secondary text-foreground'
                   : 'hover:bg-secondary/60 hover:text-foreground',
-                i > 1 ? 'hidden md:inline-block' : i > 0 ? 'hidden sm:inline-block' : '',
               )}
               aria-haspopup="menu"
               aria-expanded={openMenu === name}
@@ -181,7 +203,7 @@ export function MenuBar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   transition={{ duration: 0.14, ease: 'easeOut' }}
-                  className="absolute left-0 top-full mt-1 min-w-56 origin-top-left overflow-hidden rounded-xl border border-border bg-popover/95 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl"
+                  className="absolute left-0 top-full z-50 mt-1 max-w-[calc(100vw-1rem)] min-w-56 origin-top-left overflow-hidden rounded-xl border border-border bg-popover/95 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl"
                 >
                   {menus[name].map((item, idx) =>
                     item.divider ? (
@@ -201,7 +223,7 @@ export function MenuBar() {
                           closeAll()
                         }}
                         className={cn(
-                          'flex w-full items-center justify-between gap-6 rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors',
+                          'flex w-full items-center justify-between gap-6 rounded-lg px-2.5 py-2.5 text-left text-[13px] transition-colors sm:py-1.5',
                           item.disabled
                             ? 'cursor-not-allowed text-muted-foreground/40'
                             : 'cursor-pointer text-popover-foreground hover:bg-primary hover:text-primary-foreground',
@@ -221,10 +243,57 @@ export function MenuBar() {
             </AnimatePresence>
           </div>
         ))}
+
+        <AnimatePresence>
+          {mobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="absolute left-2 top-full z-50 mt-1 max-h-[70dvh] w-[min(calc(100vw-1rem),20rem)] overflow-auto rounded-xl border border-border bg-popover/95 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl md:hidden"
+            >
+              {menuNames.map((name) => (
+                <div key={name} className="py-1">
+                  <p className="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {name}
+                  </p>
+                  {menus[name].map((item, idx) =>
+                    item.divider ? (
+                      <div key={`m-d-${name}-${idx}`} className="my-1 h-px bg-border" />
+                    ) : (
+                      <button
+                        key={`${name}-${item.label}`}
+                        type="button"
+                        disabled={item.disabled}
+                        onClick={() => {
+                          item.action?.()
+                          closeAll()
+                        }}
+                        className={cn(
+                          'flex w-full items-center justify-between gap-4 rounded-lg px-2.5 py-2.5 text-left text-[13px] transition-colors',
+                          item.disabled
+                            ? 'cursor-not-allowed text-muted-foreground/40'
+                            : 'text-popover-foreground hover:bg-primary hover:text-primary-foreground',
+                        )}
+                      >
+                        <span>{item.label}</span>
+                        {item.shortcut && (
+                          <span className="font-mono text-[10px] opacity-60">
+                            {item.shortcut}
+                          </span>
+                        )}
+                      </button>
+                    ),
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="hidden text-muted-foreground sm:inline">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <span className="hidden max-w-[6rem] truncate text-muted-foreground md:inline">
           {activeName}
         </span>
         <div ref={widgetRef} className="relative">
@@ -232,7 +301,7 @@ export function MenuBar() {
             type="button"
             onClick={() => setWidget((cur) => (cur ? null : 'clock'))}
             className={cn(
-              'flex items-center gap-2 rounded-md px-2 py-1 font-medium transition-colors',
+              'flex items-center gap-2 rounded-md px-2 py-1.5 font-medium transition-colors sm:py-1',
               widget
                 ? 'bg-secondary text-foreground'
                 : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
@@ -252,7 +321,7 @@ export function MenuBar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.97 }}
                 transition={{ duration: 0.16, ease: 'easeOut' }}
-                className="absolute right-0 top-full mt-1 w-72 origin-top-right overflow-hidden rounded-xl border border-border bg-popover/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
+                className="absolute right-0 top-full z-50 mt-1 w-[min(calc(100vw-1rem),18rem)] origin-top-right overflow-hidden rounded-xl border border-border bg-popover/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:w-72"
               >
                 <ClockWidget now={now} />
               </motion.div>

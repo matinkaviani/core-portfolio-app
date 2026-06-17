@@ -88,7 +88,7 @@ function AchievementToast({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.98 }}
       transition={{ duration: 0.22 }}
-      className="fixed bottom-24 right-4 z-[95] w-72 overflow-hidden rounded-xl border border-border bg-popover/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl"
+      className="fixed bottom-[max(6rem,env(safe-area-inset-bottom))] left-4 right-4 z-95 overflow-hidden rounded-xl border border-border bg-popover/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:left-auto sm:right-4 sm:w-72"
     >
       <p className="text-[11px] font-medium uppercase tracking-wider text-primary">
         Achievement unlocked

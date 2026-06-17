@@ -207,7 +207,7 @@ export function TerminalApp() {
 
   return (
     <div
-      className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.13_0.004_270)] p-4 font-mono text-[13px] leading-relaxed"
+      className="nexus-scrollbar h-full overflow-x-auto overflow-y-auto bg-[oklch(0.13_0.004_270)] p-3 font-mono text-xs leading-relaxed sm:p-4 sm:text-[13px]"
       ref={scrollRef}
       onClick={() => inputRef.current?.focus()}
     >

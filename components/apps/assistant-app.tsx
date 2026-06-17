@@ -180,8 +180,8 @@ export function AssistantApp() {
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)]">
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 font-mono text-xs font-semibold text-primary">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-3 sm:gap-3 sm:px-4">
+        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 font-mono text-xs font-semibold text-primary">
           AI
           <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-emerald-400" />
         </div>
@@ -200,7 +200,7 @@ export function AssistantApp() {
         <button
           type="button"
           onClick={() => setRecruiterMode((v) => !v)}
-          className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+          className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors sm:px-2.5 sm:py-1 ${
             recruiterMode
               ? 'border-primary/50 bg-primary/15 text-primary'
               : 'border-border text-muted-foreground hover:text-foreground'
