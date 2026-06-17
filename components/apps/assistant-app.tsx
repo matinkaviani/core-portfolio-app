@@ -2,17 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport, type UIMessage } from 'ai'
 import { useOS } from '../os/os-context'
-import { PROFILE, PROJECTS, EXPERIENCE } from '@/lib/os-data'
-
-interface Message {
-  id: number
-  role: 'user' | 'assistant'
-  text: string
-}
-
-let mid = 0
-const next = () => ++mid
+import { PROFILE } from '@/lib/os-data'
+import { localAnswer } from '@/lib/ai/local-answer'
 
 const SUGGESTIONS = [
   'What does Alex work on?',
@@ -21,77 +15,101 @@ const SUGGESTIONS = [
   'How can I get in touch?',
 ]
 
-function answer(query: string): string {
-  const q = query.toLowerCase()
-
-  if (/(hi|hello|hey|yo)\b/.test(q)) {
-    return `Hi — I'm NEXUS, ${PROFILE.name}'s assistant. Ask me about projects, experience, or how to get in touch.`
-  }
-  if (q.includes('contact') || q.includes('reach') || q.includes('touch') || q.includes('email')) {
-    return `You can reach ${PROFILE.name} at ${PROFILE.email}. Also on ${PROFILE.links.github} and ${PROFILE.links.x}. Want me to open the Contact app?`
-  }
-  if (q.includes('experience') || q.includes('career') || q.includes('work history') || q.includes('job')) {
-    return (
-      `Here's the career timeline:\n\n` +
-      EXPERIENCE.map((e) => `• ${e.role} @ ${e.company} (${e.period}) — ${e.summary}`).join('\n')
-    )
-  }
-  const project = PROJECTS.find((p) => q.includes(p.name.toLowerCase()))
-  if (project) {
-    return `${project.name} (${project.year}, ${project.category}) — ${project.description}\n\nBuilt with: ${project.stack.join(', ')}. Status: ${project.status}.`
-  }
-  if (q.includes('project') || q.includes('work') || q.includes('built') || q.includes('portfolio')) {
-    return (
-      `${PROFILE.name} has shipped these selected projects:\n\n` +
-      PROJECTS.map((p) => `• ${p.name} — ${p.category} (${p.status})`).join('\n') +
-      `\n\nAsk about any one for details.`
-    )
-  }
-  if (q.includes('who') || q.includes('about') || q.includes('skill') || q.includes('stack')) {
-    return `${PROFILE.name} is a ${PROFILE.role} based in ${PROFILE.location}. ${PROFILE.bio}`
-  }
-  if (q.includes('hire') || q.includes('available') || q.includes('freelance')) {
-    return `${PROFILE.name} is open to selective collaborations and interesting problems. Reach out at ${PROFILE.email}.`
-  }
-  return `I can tell you about ${PROFILE.name}'s projects, experience, and contact details. Try asking "what does ${PROFILE.handle} work on?" or "tell me about Orbit".`
+function textOf(message: UIMessage): string {
+  return (message.parts ?? [])
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join('')
 }
+
+let fid = 0
 
 export function AssistantApp() {
   const { openApp } = useOS()
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: next(),
-      role: 'assistant',
-      text: `Hello. I'm NEXUS — the assistant for ${PROFILE.name}'s portfolio. What would you like to know?`,
-    },
-  ])
   const [input, setInput] = useState('')
-  const [typing, setTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Local fallback messages, used when the AI endpoint is unavailable.
+  const [fallback, setFallback] = useState<
+    { id: string; role: 'user' | 'assistant'; text: string }[]
+  >([])
+  const [fallbackMode, setFallbackMode] = useState(false)
+
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/assistant' }),
+    messages: [
+      {
+        id: 'greeting',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'text',
+            text: `Hello. I'm NEXUS — the AI assistant for ${PROFILE.name}'s portfolio. What would you like to know?`,
+          },
+        ],
+      },
+    ],
+  })
+
+  const busy = status === 'submitted' || status === 'streaming'
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth',
     })
-  }, [messages, typing])
+  }, [messages, fallback, busy])
 
   const send = (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed || typing) return
-    setMessages((m) => [...m, { id: next(), role: 'user', text: trimmed }])
+    if (!trimmed || busy) return
     setInput('')
-    setTyping(true)
-    const reply = answer(trimmed)
-    if (/contact app|open the contact/i.test(reply)) {
-      // small nudge to open contact when relevant
+
+    if (fallbackMode) {
+      const userMsg = { id: `f${++fid}`, role: 'user' as const, text: trimmed }
+      const reply = {
+        id: `f${++fid}`,
+        role: 'assistant' as const,
+        text: localAnswer(trimmed),
+      }
+      setFallback((m) => [...m, userMsg, reply])
+      if (/open contact/i.test(trimmed)) openApp('contact')
+      return
     }
-    setTimeout(() => {
-      setMessages((m) => [...m, { id: next(), role: 'assistant', text: reply }])
-      setTyping(false)
-      if (trimmed.toLowerCase().includes('open contact')) openApp('contact')
-    }, 650 + Math.min(1200, reply.length * 6))
+
+    sendMessage({ text: trimmed })
   }
+
+  // When the AI endpoint errors, switch to local mode and answer the last query.
+  useEffect(() => {
+    if (error && !fallbackMode) {
+      setFallbackMode(true)
+      const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+      const q = lastUser ? textOf(lastUser) : ''
+      setFallback([
+        {
+          id: `f${++fid}`,
+          role: 'assistant',
+          text:
+            'The live AI service is unavailable right now, so I switched to offline mode. I can still answer from the portfolio data.' +
+            (q ? `\n\n${localAnswer(q)}` : ''),
+        },
+      ])
+    }
+  }, [error, fallbackMode, messages])
+
+  const showSuggestions =
+    messages.length <= 1 && fallback.length === 0 && !busy
+
+  // Merge streamed messages with any local-fallback messages for rendering.
+  const rendered = [
+    ...messages.map((m) => ({
+      id: m.id,
+      role: m.role,
+      text: textOf(m),
+    })),
+    ...fallback,
+  ].filter((m) => m.text.length > 0 || m.role === 'user')
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)]">
@@ -100,16 +118,23 @@ export function AssistantApp() {
           AI
           <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-emerald-400" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">NEXUS Assistant</p>
           <p className="text-xs text-muted-foreground">
-            Online · knows everything about {PROFILE.name}
+            {fallbackMode
+              ? 'Offline mode · portfolio knowledge base'
+              : busy
+                ? 'Thinking…'
+                : `Online · knows everything about ${PROFILE.name}`}
           </p>
         </div>
       </div>
 
-      <div ref={scrollRef} className="nexus-scrollbar flex-1 space-y-4 overflow-auto px-4 py-5">
-        {messages.map((m) => (
+      <div
+        ref={scrollRef}
+        className="nexus-scrollbar flex-1 space-y-4 overflow-auto px-4 py-5"
+      >
+        {rendered.map((m) => (
           <motion.div
             key={m.id}
             initial={{ opacity: 0, y: 8 }}
@@ -124,12 +149,13 @@ export function AssistantApp() {
                   : 'rounded-bl-md border border-border bg-card text-foreground'
               }`}
             >
-              {m.text}
+              {m.text || '…'}
             </div>
           </motion.div>
         ))}
+
         <AnimatePresence>
-          {typing && (
+          {status === 'submitted' && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -151,7 +177,7 @@ export function AssistantApp() {
         </AnimatePresence>
       </div>
 
-      {messages.length <= 2 && (
+      {showSuggestions && (
         <div className="flex flex-wrap gap-2 px-4 pb-2">
           {SUGGESTIONS.map((s) => (
             <button
@@ -182,7 +208,7 @@ export function AssistantApp() {
         />
         <button
           type="submit"
-          disabled={!input.trim() || typing}
+          disabled={!input.trim() || busy}
           className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-40"
         >
           Send

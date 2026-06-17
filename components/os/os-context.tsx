@@ -31,6 +31,7 @@ interface OSContextValue {
   minimizeApp: (id: AppId) => void
   toggleMaximize: (id: AppId) => void
   moveWindow: (id: AppId, x: number, y: number) => void
+  resizeWindow: (id: AppId, next: Partial<Pick<WindowState, 'x' | 'y' | 'w' | 'h'>>) => void
   isOpen: (id: AppId) => boolean
 }
 
@@ -58,52 +59,44 @@ export function OSProvider({ children }: { children: ReactNode }) {
     const z = zRef.current
     setActiveId(id)
     setWindows((prev) =>
-      prev.map((w) =>
-        w.id === id ? { ...w, z, minimized: false } : w,
-      ),
+      prev.map((w) => (w.id === id ? { ...w, z, minimized: false } : w)),
     )
   }, [])
 
-  const openApp = useCallback(
-    (id: AppId) => {
-      setWindows((prev) => {
-        const existing = prev.find((w) => w.id === id)
-        zRef.current += 1
-        const z = zRef.current
-        if (existing) {
-          return prev.map((w) =>
-            w.id === id ? { ...w, z, minimized: false } : w,
-          )
-        }
-        const meta = APPS[id]
-        const pos = initialPosition(openCount.current, meta.size.w, meta.size.h)
-        openCount.current += 1
-        return [
-          ...prev,
-          {
-            id,
-            x: pos.x,
-            y: pos.y,
-            w: meta.size.w,
-            h: meta.size.h,
-            z,
-            minimized: false,
-            maximized: false,
-          },
-        ]
-      })
-      setActiveId(id)
-    },
-    [],
-  )
+  const openApp = useCallback((id: AppId) => {
+    setWindows((prev) => {
+      const existing = prev.find((w) => w.id === id)
+      zRef.current += 1
+      const z = zRef.current
+      if (existing) {
+        return prev.map((w) =>
+          w.id === id ? { ...w, z, minimized: false } : w,
+        )
+      }
+      const meta = APPS[id]
+      const pos = initialPosition(openCount.current, meta.size.w, meta.size.h)
+      openCount.current += 1
+      return [
+        ...prev,
+        {
+          id,
+          x: pos.x,
+          y: pos.y,
+          w: meta.size.w,
+          h: meta.size.h,
+          z,
+          minimized: false,
+          maximized: false,
+        },
+      ]
+    })
+    setActiveId(id)
+  }, [])
 
-  const closeApp = useCallback(
-    (id: AppId) => {
-      setWindows((prev) => prev.filter((w) => w.id !== id))
-      setActiveId((cur) => (cur === id ? null : cur))
-    },
-    [],
-  )
+  const closeApp = useCallback((id: AppId) => {
+    setWindows((prev) => prev.filter((w) => w.id !== id))
+    setActiveId((cur) => (cur === id ? null : cur))
+  }, [])
 
   const minimizeApp = useCallback((id: AppId) => {
     setWindows((prev) =>
@@ -112,25 +105,31 @@ export function OSProvider({ children }: { children: ReactNode }) {
     setActiveId((cur) => (cur === id ? null : cur))
   }, [])
 
-  const toggleMaximize = useCallback(
-    (id: AppId) => {
-      zRef.current += 1
-      const z = zRef.current
+  const toggleMaximize = useCallback((id: AppId) => {
+    zRef.current += 1
+    const z = zRef.current
+    setWindows((prev) =>
+      prev.map((w) =>
+        w.id === id
+          ? { ...w, maximized: !w.maximized, z, minimized: false }
+          : w,
+      ),
+    )
+    setActiveId(id)
+  }, [])
+
+  const moveWindow = useCallback((id: AppId, x: number, y: number) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, x, y } : w)))
+  }, [])
+
+  const resizeWindow = useCallback(
+    (id: AppId, next: Partial<Pick<WindowState, 'x' | 'y' | 'w' | 'h'>>) => {
       setWindows((prev) =>
-        prev.map((w) =>
-          w.id === id ? { ...w, maximized: !w.maximized, z, minimized: false } : w,
-        ),
+        prev.map((w) => (w.id === id ? { ...w, ...next } : w)),
       )
-      setActiveId(id)
     },
     [],
   )
-
-  const moveWindow = useCallback((id: AppId, x: number, y: number) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, x, y } : w)),
-    )
-  }, [])
 
   const isOpen = useCallback(
     (id: AppId) => windows.some((w) => w.id === id),
@@ -147,6 +146,7 @@ export function OSProvider({ children }: { children: ReactNode }) {
       minimizeApp,
       toggleMaximize,
       moveWindow,
+      resizeWindow,
       isOpen,
     }),
     [
@@ -158,6 +158,7 @@ export function OSProvider({ children }: { children: ReactNode }) {
       minimizeApp,
       toggleMaximize,
       moveWindow,
+      resizeWindow,
       isOpen,
     ],
   )
