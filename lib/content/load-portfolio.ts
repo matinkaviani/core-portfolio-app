@@ -1,6 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createRequire } from 'node:module'
 import type { ExperienceItem, ProjectItem } from '@/lib/os-data'
+
+const require = createRequire(import.meta.url)
 
 const CONTENT_DIR = path.join(process.cwd(), 'content')
 
@@ -229,7 +232,7 @@ function loadProfile(
   }
 }
 
-export function loadPortfolio(): PortfolioData {
+export function loadPortfolioFromFs(): PortfolioData {
   const profileJson = JSON.parse(
     readFile(path.join(CONTENT_DIR, 'profile.json')),
   ) as { name: string; handle: string; role: string }
@@ -263,5 +266,17 @@ export function loadPortfolio(): PortfolioData {
     experienceDoc: parseDocument('experience', experienceMarkdown),
     contact: parseDocument('contact', contactMarkdown),
     aiInstructions,
+  }
+}
+
+export function loadPortfolio(): PortfolioData {
+  try {
+    return loadPortfolioFromFs()
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      throw error
+    }
+
+    return require('./portfolio.snapshot.json') as PortfolioData
   }
 }
