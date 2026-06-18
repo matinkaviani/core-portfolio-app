@@ -16,8 +16,11 @@ interface AssistantRequestBody {
 export async function POST(req: Request) {
   const model = getAssistantModel()
   if (!model) {
+    console.error(
+      '[assistant] missing AI credentials — set GROQ_API_KEY as a Cloudflare Worker secret (or AI_GATEWAY_API_KEY on Vercel)',
+    )
     return new Response(
-      JSON.stringify({ error: 'assistant_unavailable' }),
+      JSON.stringify({ error: 'assistant_unavailable', reason: 'missing_credentials' }),
       { status: 502, headers: { 'content-type': 'application/json' } },
     )
   }
@@ -53,6 +56,9 @@ export async function POST(req: Request) {
       system,
       messages: await convertToModelMessages(messages),
       temperature: mode === 'recruiter' ? 0.3 : 0.4,
+      onError: ({ error }) => {
+        console.error('[assistant] stream error:', error)
+      },
     })
 
     const response = result.toUIMessageStreamResponse()

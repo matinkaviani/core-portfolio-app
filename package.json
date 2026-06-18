@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --keep-vars"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.41",

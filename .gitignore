@@ -20,3 +20,10 @@ node_modules
 .open-next/
 .wrangler/
 lib/content/portfolio.snapshot.json
+
+# OS
+.DS_Store
+
+
+# pnpm
+.pnpm-store/

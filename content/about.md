@@ -4,6 +4,12 @@ I am a Frontend Engineer specializing in building scalable, high-performance web
 
 I focus on building systems, not just UI components.
 
+## Personal
+
+- Born: 6 September 2000
+- Age: 25 (as of 2026)
+- Marital status: Married
+
 My strengths include:
 - Frontend architecture design
 - Performance optimization
