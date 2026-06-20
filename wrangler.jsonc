@@ -16,5 +16,15 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "core-portfolio-app"
     }
+  ],
+  "routes": [
+    {
+      "pattern": "matinkaviani.net",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.matinkaviani.net",
+      "custom_domain": true
+    }
   ]
 }
