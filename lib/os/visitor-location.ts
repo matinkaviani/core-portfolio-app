@@ -66,5 +66,3 @@ export function guessLocationFromTimezone(timezone: string): VisitorLocation {
     approximate: true,
   }
 }
-
-export const VISITOR_LOCATION_STORAGE_KEY = 'core-visitor-location'

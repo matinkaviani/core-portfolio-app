@@ -12,8 +12,15 @@ export async function GET(req: Request) {
     approximate: false,
   })
 
-  return Response.json({
-    location,
-    timezone: timezone ?? null,
-  })
+  return Response.json(
+    {
+      location,
+      timezone: timezone ?? null,
+    },
+    {
+      headers: {
+        'Cache-Control': 'private, no-store',
+      },
+    },
+  )
 }

@@ -1,66 +1,56 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  VISITOR_LOCATION_STORAGE_KEY,
   guessLocationFromTimezone,
   type VisitorLocation,
 } from '@/lib/os/visitor-location'
+
+async function fetchVisitorLocation(): Promise<VisitorLocation> {
+  const res = await fetch('/api/visitor-location', { cache: 'no-store' })
+  const data = (await res.json()) as { location?: VisitorLocation | null }
+
+  return (
+    data.location ??
+    guessLocationFromTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  )
+}
 
 export function useVisitorLocation() {
   const [location, setLocation] = useState<VisitorLocation | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const refresh = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true)
+
     try {
-      const cached = sessionStorage.getItem(VISITOR_LOCATION_STORAGE_KEY)
-      if (cached) {
-        setLocation(JSON.parse(cached) as VisitorLocation)
-        setLoading(false)
-        return
-      }
+      const next = await fetchVisitorLocation()
+      setLocation(next)
     } catch {
-      // ignore invalid cache
-    }
-
-    let cancelled = false
-
-    fetch('/api/visitor-location')
-      .then((res) => res.json())
-      .then((data: { location?: VisitorLocation | null }) => {
-        if (cancelled) return
-
-        const resolved =
-          data.location ??
-          guessLocationFromTimezone(
-            Intl.DateTimeFormat().resolvedOptions().timeZone,
-          )
-
-        setLocation(resolved)
-        try {
-          sessionStorage.setItem(
-            VISITOR_LOCATION_STORAGE_KEY,
-            JSON.stringify(resolved),
-          )
-        } catch {
-          // ignore storage failures
-        }
-      })
-      .catch(() => {
-        if (cancelled) return
-        const fallback = guessLocationFromTimezone(
+      setLocation(
+        guessLocationFromTimezone(
           Intl.DateTimeFormat().resolvedOptions().timeZone,
-        )
-        setLocation(fallback)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+        ),
+      )
+    } finally {
+      setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void refresh(true)
+  }, [refresh])
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh(false)
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refresh])
 
   return { location, loading }
 }
