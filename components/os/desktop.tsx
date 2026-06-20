@@ -30,6 +30,7 @@ import { usePortfolio } from './portfolio-context'
 import { useSettings, useReducedMotion } from './settings-context'
 import { useDeepLinks } from './use-deep-links'
 import { useGlobalShortcuts } from './use-global-shortcuts'
+import { useVisitorLocation } from './use-visitor-location'
 import { cn } from '@/lib/utils'
 
 function renderApp(id: AppId) {
@@ -160,6 +161,8 @@ function WelcomePanel({
   onOpen: (id: AppId) => void
 }) {
   const reducedMotion = useReducedMotion()
+  const { location: visitorLocation, loading: visitorLocationLoading } =
+    useVisitorLocation()
   const totalSkills = skills.reduce((n, c) => n + c.skills.length, 0)
   const focusWords = skills
     .map((c) => c.skills[0])
@@ -219,9 +222,14 @@ function WelcomePanel({
               <div className="mt-3 hidden space-y-1 font-mono text-[11px] sm:mt-4 sm:block sm:space-y-1.5">
                 <InfoRow label="user" value={visitorName} />
                 <InfoRow label="host" value={`${ownerName.split(' ')[0]}-os`} />
-                {profile.location && (
-                  <InfoRow label="location" value={profile.location} />
-                )}
+                <InfoRow
+                  label="location"
+                  value={
+                    visitorLocationLoading
+                      ? 'Detecting…'
+                      : (visitorLocation?.label ?? 'Unknown')
+                  }
+                />
               </div>
             </div>
           </div>
