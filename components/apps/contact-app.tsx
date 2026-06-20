@@ -1,13 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  Turnstile,
+  type TurnstileInstance,
+} from '@marsidev/react-turnstile'
 import { motion } from 'framer-motion'
+import { useRef, useState } from 'react'
 import { usePortfolio } from '../os/portfolio-context'
+
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
+type FormState = {
+  name: string
+  email: string
+  message: string
+  website: string
+}
+
+type SubmitState = 'idle' | 'submitting' | 'sent' | 'error'
 
 export function ContactApp() {
   const { profile } = usePortfolio()
-  const [sent, setSent] = useState(false)
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [form, setForm] = useState<FormState>({
+    name: '',
+    email: '',
+    message: '',
+    website: '',
+  })
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance | null>(null)
 
   const channels = [
     { label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
@@ -24,11 +47,61 @@ export function ContactApp() {
     { label: 'Location', value: profile.location, href: undefined },
   ]
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSent(true)
-    setTimeout(() => setSent(false), 3500)
-    setForm({ name: '', email: '', message: '' })
+    if (submitState === 'submitting') return
+
+    if (turnstileSiteKey && !turnstileToken) {
+      setSubmitState('error')
+      setErrorMessage('Complete the security check and try again.')
+      return
+    }
+
+    setSubmitState('submitting')
+    setErrorMessage('')
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          message: form.message,
+          website: form.website,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as {
+          error?: string
+        } | null
+
+        if (data?.error === 'domain_not_verified') {
+          setSubmitState('error')
+          setErrorMessage(
+            'Email delivery is not configured yet. Use the email link above for now.',
+          )
+          return
+        }
+
+        throw new Error(data?.error ?? 'send_failed')
+      }
+
+      setSubmitState('sent')
+      setForm({ name: '', email: '', message: '', website: '' })
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
+      window.setTimeout(() => setSubmitState('idle'), 4000)
+    } catch {
+      setSubmitState('error')
+      setErrorMessage(
+        'Could not send your message right now. Try email instead.',
+      )
+      turnstileRef.current?.reset()
+      setTurnstileToken(null)
+    }
   }
 
   return (
@@ -74,13 +147,24 @@ export function ContactApp() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-3">
+        <input
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          value={form.website}
+          onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+          name="website"
+          className="hidden"
+        />
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
             required
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Name"
-            className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
+            disabled={submitState === 'submitting'}
+            className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none disabled:opacity-60"
           />
           <input
             required
@@ -88,7 +172,8 @@ export function ContactApp() {
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             placeholder="Email"
-            className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
+            disabled={submitState === 'submitting'}
+            className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none disabled:opacity-60"
           />
         </div>
         <textarea
@@ -97,23 +182,46 @@ export function ContactApp() {
           value={form.message}
           onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
           placeholder="Tell me about your project…"
-          className="w-full resize-none rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
+          disabled={submitState === 'submitting'}
+          className="w-full resize-none rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none disabled:opacity-60"
         />
+
+        {turnstileSiteKey ? (
+          <Turnstile
+            ref={turnstileRef}
+            siteKey={turnstileSiteKey}
+            onSuccess={setTurnstileToken}
+            onExpire={() => setTurnstileToken(null)}
+            onError={() => setTurnstileToken(null)}
+            options={{ theme: 'dark', size: 'flexible' }}
+          />
+        ) : null}
+
         <button
           type="submit"
-          className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          disabled={submitState === 'submitting'}
+          className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {sent ? 'Message sent ✓' : 'Send message'}
+          {submitState === 'submitting'
+            ? 'Sending…'
+            : submitState === 'sent'
+              ? 'Message sent ✓'
+              : 'Send message'}
         </button>
-        {sent && (
+
+        {submitState === 'sent' && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center text-xs text-emerald-400"
           >
-            Thanks — I&apos;ll reply to {profile.email} shortly.
+            Thanks — I&apos;ll reply to your email shortly.
           </motion.p>
         )}
+
+        {submitState === 'error' && errorMessage ? (
+          <p className="text-center text-xs text-red-400">{errorMessage}</p>
+        ) : null}
       </form>
     </div>
   )
