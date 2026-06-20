@@ -10,9 +10,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'NEXUS — Portfolio OS',
+  title: 'CORE — Portfolio OS',
   description:
-    'NEXUS is a portfolio that feels like a lightweight operating system — terminal, AI assistant, projects, experience, and contact, all in one desktop.',
+    'CORE is a portfolio that feels like a lightweight operating system — terminal, AI assistant, projects, experience, and contact, all in one desktop.',
   generator: 'v0.app',
 }
 

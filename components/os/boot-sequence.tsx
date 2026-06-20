@@ -6,7 +6,7 @@ import { setStoredVisitor } from '@/lib/os/session'
 import { useReducedMotion } from './settings-context'
 
 const BOOT_LINES = [
-  'NEXUS OS v2.4.1 — initializing',
+  'CORE OS v2.4.1 — initializing',
   'mounting /portfolio ........... ok',
   'loading interface kernel ...... ok',
   'starting window manager ....... ok',
@@ -92,7 +92,7 @@ export function BootSequence({
     <AnimatePresence>
       {phase !== 'exit' && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background nexus-grid px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background core-grid px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, filter: 'blur(8px)' }}
           transition={{ duration: 0.6, ease: 'easeInOut' }}
@@ -108,7 +108,7 @@ export function BootSequence({
               </div>
               <div>
                 <p className="text-sm font-semibold tracking-tight text-foreground">
-                  NEXUS
+                  CORE
                 </p>
                 <p className="text-xs text-muted-foreground">Portfolio OS</p>
               </div>

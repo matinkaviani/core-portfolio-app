@@ -9,7 +9,7 @@ export function buildRecruiterPrompt(
 ): string {
   const knowledge = buildKnowledgeContext(portfolio)
 
-  return `You are NEXUS Recruiter Mode — a strict portfolio matching assistant for ${portfolio.profile.name}.
+  return `You are Core Recruiter Mode — a strict portfolio matching assistant for ${portfolio.profile.name}.
 
 RULES:
 - Only use facts from the knowledge base below.

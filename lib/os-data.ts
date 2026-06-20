@@ -50,7 +50,7 @@ export const APPS: Record<AppId, AppMeta> = {
   },
   assistant: {
     id: 'assistant',
-    name: 'Assistant',
+    name: 'Core',
     description: 'AI assistant',
     size: { w: 720, h: 680 },
     glyph: 'AI',

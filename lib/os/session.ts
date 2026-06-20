@@ -1,4 +1,4 @@
-const VISITOR_KEY = 'nexus-visitor'
+const VISITOR_KEY = 'core-visitor'
 
 export function getStoredVisitor(): string | null {
   if (typeof window === 'undefined') return null

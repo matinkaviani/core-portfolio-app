@@ -186,7 +186,7 @@ export function AssistantApp() {
           <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-emerald-400" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">NEXUS Assistant</p>
+          <p className="text-sm font-semibold text-foreground">Core Assistant</p>
           <p className="text-xs text-muted-foreground">
             {fallbackMode
               ? 'Offline mode · portfolio knowledge base'
@@ -227,7 +227,7 @@ export function AssistantApp() {
 
       <div
         ref={scrollRef}
-        className="nexus-scrollbar flex-1 space-y-4 overflow-auto px-4 py-5"
+        className="core-scrollbar flex-1 space-y-4 overflow-auto px-4 py-5"
       >
         {rendered.map((m) => (
           <motion.div

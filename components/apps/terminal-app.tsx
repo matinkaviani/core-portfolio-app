@@ -53,7 +53,7 @@ export function TerminalApp() {
   const { logout } = useSession()
   const files = flattenFiles(buildContentTree(portfolio))
   const [lines, setLines] = useState<Line[]>([
-    { id: next(), type: 'system', text: `NEXUS shell — type 'help' to begin.` },
+    { id: next(), type: 'system', text: `CORE shell — type 'help' to begin.` },
   ])
   const [value, setValue] = useState('')
   const [history, setHistory] = useState<string[]>([])
@@ -86,7 +86,7 @@ export function TerminalApp() {
         push('output', `${profile.name} — ${profile.role}\n${profile.bio}`)
         break
       case 'whoami':
-        push('output', `${profile.handle}@nexus`)
+        push('output', `${profile.handle}@core`)
         break
       case 'date':
         push('output', new Date().toString())
@@ -207,7 +207,7 @@ export function TerminalApp() {
 
   return (
     <div
-      className="nexus-scrollbar h-full overflow-x-auto overflow-y-auto bg-[oklch(0.13_0.004_270)] p-3 font-mono text-xs leading-relaxed sm:p-4 sm:text-[13px]"
+      className="core-scrollbar h-full overflow-x-auto overflow-y-auto bg-[oklch(0.13_0.004_270)] p-3 font-mono text-xs leading-relaxed sm:p-4 sm:text-[13px]"
       ref={scrollRef}
       onClick={() => inputRef.current?.focus()}
     >
@@ -215,7 +215,7 @@ export function TerminalApp() {
         <div key={line.id} className="whitespace-pre-wrap break-words">
           {line.type === 'input' ? (
             <div className="flex gap-2">
-              <span className="text-primary">{profile.handle}@nexus</span>
+              <span className="text-primary">{profile.handle}@core</span>
               <span className="text-muted-foreground">~</span>
               <span className="text-foreground">{line.text}</span>
             </div>
@@ -227,7 +227,7 @@ export function TerminalApp() {
         </div>
       ))}
       <div className="flex gap-2">
-        <span className="text-primary">{profile.handle}@nexus</span>
+        <span className="text-primary">{profile.handle}@core</span>
         <span className="text-muted-foreground">~</span>
         <input
           ref={inputRef}

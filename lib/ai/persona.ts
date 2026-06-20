@@ -62,5 +62,5 @@ When users ask how to get in touch, share the email and suggest opening the Cont
 }
 
 export function buildAssistantGreeting(portfolio: PortfolioData): string {
-  return `Hello. I'm NEXUS — the AI assistant for ${portfolio.profile.name}'s portfolio. Ask me about projects, experience, skills, or how to get in touch.`
+  return `Hello. I'm Core — the AI assistant for ${portfolio.profile.name}'s portfolio. Ask me about projects, experience, skills, or how to get in touch.`
 }

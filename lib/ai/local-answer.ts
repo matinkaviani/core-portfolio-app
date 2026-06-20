@@ -17,7 +17,7 @@ export function localAnswer(portfolio: PortfolioData, query: string): string {
   if (!q) return UNKNOWN_RESPONSE
 
   if (/^(hi|hello|hey|yo)\b/.test(q)) {
-    return `Hi — I'm NEXUS, ${profile.name}'s assistant. Ask me about projects, experience, skills, or how to get in touch.`
+    return `Hi — I'm Core, ${profile.name}'s assistant. Ask me about projects, experience, skills, or how to get in touch.`
   }
 
   if (/(contact|reach|touch|email|hire|available)/.test(q)) {

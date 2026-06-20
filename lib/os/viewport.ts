@@ -26,8 +26,8 @@ export function getSafeAreaInsets() {
     return { top: 0, bottom: 0 }
   }
   const style = getComputedStyle(document.documentElement)
-  const top = parseFloat(style.getPropertyValue('--nexus-safe-top')) || 0
-  const bottom = parseFloat(style.getPropertyValue('--nexus-safe-bottom')) || 0
+  const top = parseFloat(style.getPropertyValue('--core-safe-top')) || 0
+  const bottom = parseFloat(style.getPropertyValue('--core-safe-bottom')) || 0
   return { top, bottom }
 }
 

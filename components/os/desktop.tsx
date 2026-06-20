@@ -51,9 +51,9 @@ function renderApp(id: AppId) {
 }
 
 function wallpaperClass(wallpaper: string) {
-  if (wallpaper === 'gradient') return 'nexus-wallpaper-gradient'
-  if (wallpaper === 'aurora') return 'nexus-wallpaper-aurora'
-  return 'nexus-wallpaper-solid'
+  if (wallpaper === 'gradient') return 'core-wallpaper-gradient'
+  if (wallpaper === 'aurora') return 'core-wallpaper-aurora'
+  return 'core-wallpaper-solid'
 }
 
 export function Desktop({
@@ -89,7 +89,7 @@ export function Desktop({
       <MenuBar />
 
       {settings.showGrid && (
-        <div aria-hidden className="nexus-grid pointer-events-none absolute inset-0" />
+        <div aria-hidden className="core-grid pointer-events-none absolute inset-0" />
       )}
 
       <div
@@ -183,7 +183,7 @@ function WelcomePanel({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: 12 }}
       transition={{ duration: 0.5 }}
-      className="nexus-scrollbar absolute inset-0 z-10 overflow-x-hidden overflow-y-auto px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-[calc(2.75rem+env(safe-area-inset-top)+0.75rem)] sm:px-6 sm:pb-32 sm:pt-[calc(3.5rem+env(safe-area-inset-top))] lg:flex lg:items-center lg:justify-center lg:overflow-hidden lg:px-6 lg:pb-28 lg:pt-16"
+      className="core-scrollbar absolute inset-0 z-10 overflow-x-hidden overflow-y-auto px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-[calc(2.75rem+env(safe-area-inset-top)+0.75rem)] sm:px-6 sm:pb-32 sm:pt-[calc(3.5rem+env(safe-area-inset-top))] lg:flex lg:items-center lg:justify-center lg:overflow-hidden lg:px-6 lg:pb-28 lg:pt-16"
     >
       <motion.div
         variants={container}
@@ -193,7 +193,7 @@ function WelcomePanel({
       >
         {/* System console — shown first on mobile for quick glance */}
         <motion.div variants={item} className="order-1 lg:order-2 lg:col-span-2">
-          <div className="overflow-hidden rounded-xl border border-border nexus-glass shadow-xl shadow-black/30 sm:rounded-2xl sm:shadow-2xl">
+          <div className="overflow-hidden rounded-xl border border-border core-glass shadow-xl shadow-black/30 sm:rounded-2xl sm:shadow-2xl">
             <div className="flex items-center gap-2 border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
               <span className="h-2 w-2 rounded-full bg-destructive/70 sm:h-2.5 sm:w-2.5" />
               <span className="h-2 w-2 rounded-full bg-amber-400/70 sm:h-2.5 sm:w-2.5" />
@@ -248,7 +248,7 @@ function WelcomePanel({
               ONLINE
             </span>
             <span className="hidden uppercase tracking-[0.2em] text-muted-foreground sm:inline">
-              NEXUS · Portfolio OS
+              CORE · Portfolio OS
             </span>
           </motion.div>
 

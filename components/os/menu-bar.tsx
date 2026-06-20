@@ -144,15 +144,15 @@ export function MenuBar() {
 
   return (
     <header
-      data-nexus-menubar
-      className="fixed inset-x-0 top-0 z-60 backdrop-blur-xs flex min-h-9 items-center justify-between border-b border-border nexus-glass px-2 pt-[env(safe-area-inset-top)] text-xs sm:px-3"
+      data-core-menubar
+      className="fixed inset-x-0 top-0 z-60 backdrop-blur-xs flex min-h-9 items-center justify-between border-b border-border core-glass px-2 pt-[env(safe-area-inset-top)] text-xs sm:px-3"
     >
       <div ref={menuRef} className="relative flex min-w-0 items-center gap-0.5 sm:gap-1">
         <div className="flex shrink-0 items-center gap-2 px-1 font-semibold tracking-tight sm:px-2">
           <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
             N
           </span>
-          <span className="hidden text-foreground sm:inline">NEXUS</span>
+          <span className="hidden text-foreground sm:inline">CORE</span>
         </div>
 
         <button

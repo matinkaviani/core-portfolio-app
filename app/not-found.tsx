@@ -3,18 +3,18 @@ import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
   return (
-    <main className="relative flex min-h-dvh flex-col bg-background nexus-grid">
+    <main className="relative flex min-h-dvh flex-col bg-background core-grid">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]"
       />
 
-      <header className="relative z-10 flex h-9 items-center border-b border-border nexus-glass px-3 text-xs">
+      <header className="relative z-10 flex h-9 items-center border-b border-border core-glass px-3 text-xs">
         <div className="flex items-center gap-2 px-2 font-semibold tracking-tight">
           <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
             N
           </span>
-          <span className="text-foreground">NEXUS</span>
+          <span className="text-foreground">CORE</span>
         </div>
         <span className="ml-3 text-muted-foreground">System</span>
       </header>
@@ -22,7 +22,7 @@ export default function NotFound() {
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
-            NEXUS · System Error
+            CORE · System Error
           </p>
 
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card/80 shadow-2xl shadow-black/40 backdrop-blur-sm">
@@ -37,11 +37,11 @@ export default function NotFound() {
 
             <div className="space-y-3 bg-[oklch(0.13_0.004_270)] p-5 font-mono text-[13px] leading-relaxed">
               <p className="text-muted-foreground">
-                NEXUS shell — route handler failed.
+                CORE shell — route handler failed.
               </p>
               <div className="space-y-1">
                 <p>
-                  <span className="text-primary">guest@nexus</span>
+                  <span className="text-primary">guest@core</span>
                   <span className="text-muted-foreground"> ~ </span>
                   <span className="text-foreground">cd /unknown-route</span>
                 </p>
@@ -51,7 +51,7 @@ export default function NotFound() {
               </div>
               <div className="space-y-1">
                 <p>
-                  <span className="text-primary">guest@nexus</span>
+                  <span className="text-primary">guest@core</span>
                   <span className="text-muted-foreground"> ~ </span>
                   <span className="text-foreground">echo $?</span>
                 </p>

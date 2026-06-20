@@ -20,13 +20,13 @@ export function SettingsApp() {
   }
 
   return (
-    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
+    <div className="core-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
       <p className="text-[11px] uppercase tracking-wider text-primary">System</p>
       <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
         Settings
       </h2>
       <p className="mt-2 max-w-prose text-sm text-muted-foreground">
-        Customize the NEXUS desktop environment.
+        Customize the CORE desktop environment.
       </p>
 
       <section className="mt-6 space-y-4">

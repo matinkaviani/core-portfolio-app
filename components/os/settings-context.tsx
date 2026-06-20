@@ -15,19 +15,19 @@ import {
   DEFAULT_SETTINGS,
   loadSettings,
   saveSettings,
-  type NexusSettings,
+  type CoreSettings,
 } from '@/lib/os/settings'
 
 interface SettingsContextValue {
-  settings: NexusSettings
-  updateSettings: (patch: Partial<NexusSettings>) => void
+  settings: CoreSettings
+  updateSettings: (patch: Partial<CoreSettings>) => void
   resetSettings: () => void
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<NexusSettings>(() =>
+  const [settings, setSettings] = useState<CoreSettings>(() =>
     typeof window !== 'undefined' ? loadSettings() : DEFAULT_SETTINGS,
   )
 
@@ -37,7 +37,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     applySettingsToDocument(loaded)
   }, [])
 
-  const updateSettings = useCallback((patch: Partial<NexusSettings>) => {
+  const updateSettings = useCallback((patch: Partial<CoreSettings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch }
       saveSettings(next)

@@ -112,7 +112,7 @@ export function AppWindow({ win, children }: AppWindowProps) {
 
   return (
     <motion.div
-      data-nexus-window
+      data-core-window
       drag={!maximized && !resizing && !isMobile}
       dragListener={false}
       dragControls={dragControls}
@@ -230,7 +230,7 @@ export function AppWindow({ win, children }: AppWindowProps) {
           <div className={cn(isMobile ? 'w-6' : 'w-12')} />
         </div>
 
-        <div className="nexus-scrollbar min-h-0 flex-1 overflow-auto">
+        <div className="core-scrollbar min-h-0 flex-1 overflow-auto">
           {children}
         </div>
 

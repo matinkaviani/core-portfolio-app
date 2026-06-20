@@ -13,23 +13,7 @@ import { BootSequence } from '@/components/os/boot-sequence'
 import { Desktop } from '@/components/os/desktop'
 import { loadSettings } from '@/lib/os/settings'
 
-function LoginFlow({ ownerName }: { ownerName: string }) {
-  const { unlock } = useAchievements()
-  const { login, skipBoot } = useSession()
-
-  return (
-    <BootSequence
-      ownerName={ownerName}
-      skipBoot={skipBoot}
-      onComplete={(name) => {
-        unlock('first_login')
-        login(name)
-      }}
-    />
-  )
-}
-
-function NexusShell({ portfolio }: { portfolio: PortfolioData }) {
+function CoreShell({ portfolio }: { portfolio: PortfolioData }) {
   const { booted, sessionChecked, sessionKey, visitorName } = useSession()
 
   if (!sessionChecked) return null
@@ -51,7 +35,23 @@ function NexusShell({ portfolio }: { portfolio: PortfolioData }) {
   )
 }
 
-export function NexusOS({ portfolio }: { portfolio: PortfolioData }) {
+function LoginFlow({ ownerName }: { ownerName: string }) {
+  const { unlock } = useAchievements()
+  const { login, skipBoot } = useSession()
+
+  return (
+    <BootSequence
+      ownerName={ownerName}
+      skipBoot={skipBoot}
+      onComplete={(name) => {
+        unlock('first_login')
+        login(name)
+      }}
+    />
+  )
+}
+
+export function CoreOS({ portfolio }: { portfolio: PortfolioData }) {
   const [skipBoot, setSkipBoot] = useState(false)
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function NexusOS({ portfolio }: { portfolio: PortfolioData }) {
       <SettingsProvider>
         <AchievementsProvider>
           <SessionProvider skipBoot={skipBoot}>
-            <NexusShell portfolio={portfolio} />
+            <CoreShell portfolio={portfolio} />
           </SessionProvider>
         </AchievementsProvider>
       </SettingsProvider>

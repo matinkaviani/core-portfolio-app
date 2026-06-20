@@ -289,7 +289,7 @@ function ContextMenuLayer({
           <motion.div
             key="context-menu"
             role="menu"
-            data-nexus-context-menu
+            data-core-context-menu
             initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
@@ -339,7 +339,7 @@ export function isContextMenuExcluded(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false
   return Boolean(
     target.closest(
-      '[data-nexus-window], [data-nexus-dock], [data-nexus-menubar], [data-nexus-context-menu]',
+      '[data-core-window], [data-core-dock], [data-core-menubar], [data-core-context-menu]',
     ),
   )
 }

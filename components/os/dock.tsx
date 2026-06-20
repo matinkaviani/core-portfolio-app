@@ -13,11 +13,11 @@ export function Dock() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-visible px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
       <motion.nav
-        data-nexus-dock
+        data-core-dock
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.5, ease: 'easeOut' }}
-        className="pointer-events-auto flex items-end gap-0.5 overflow-visible rounded-2xl border border-border nexus-glass p-1.5 shadow-2xl shadow-black/40 sm:gap-1.5 sm:p-2 backdrop-blur-xs"
+        className="pointer-events-auto flex items-end gap-0.5 overflow-visible rounded-2xl border border-border core-glass p-1.5 shadow-2xl shadow-black/40 sm:gap-1.5 sm:p-2 backdrop-blur-xs"
         aria-label="Application dock"
       >
         {APP_ORDER.map((id) => {

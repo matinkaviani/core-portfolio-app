@@ -33,7 +33,7 @@ export function FinderApp() {
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)] md:flex-row">
-      <aside className="nexus-scrollbar max-h-44 shrink-0 overflow-auto border-b border-border p-3 md:max-h-none md:w-56 md:border-b-0 md:border-r">
+      <aside className="core-scrollbar max-h-44 shrink-0 overflow-auto border-b border-border p-3 md:max-h-none md:w-56 md:border-b-0 md:border-r">
         <p className="px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           /content
         </p>
@@ -45,7 +45,7 @@ export function FinderApp() {
         />
       </aside>
 
-      <div className="nexus-scrollbar flex min-h-0 flex-1 flex-col overflow-auto p-4 sm:p-5">
+      <div className="core-scrollbar flex min-h-0 flex-1 flex-col overflow-auto p-4 sm:p-5">
         <p className="font-mono text-xs text-primary">{selectedPath}</p>
         <h2 className="mt-1 text-lg font-semibold text-foreground">
           {selected?.name ?? 'Select a file'}

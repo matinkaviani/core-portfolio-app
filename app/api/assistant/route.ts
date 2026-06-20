@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
     const response = result.toUIMessageStreamResponse()
     const headers = new Headers(response.headers)
-    headers.set('x-nexus-trace', JSON.stringify(trace))
+    headers.set('x-core-trace', JSON.stringify(trace))
     return new Response(response.body, {
       status: response.status,
       headers,

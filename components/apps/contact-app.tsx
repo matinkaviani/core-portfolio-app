@@ -32,7 +32,7 @@ export function ContactApp() {
   }
 
   return (
-    <div className="nexus-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
+    <div className="core-scrollbar h-full overflow-auto bg-[oklch(0.155_0.004_270)] p-4 sm:p-6">
       <p className="text-[11px] uppercase tracking-wider text-primary">
         Get in touch
       </p>

@@ -3,7 +3,7 @@ import type { LanguageModel } from 'ai'
 
 // Kimi models require Groq paid-tier access; llama-3.3-70b works on the free tier.
 const DEFAULT_MODEL =
-  process.env.NEXUS_AI_MODEL || 'llama-3.3-70b-versatile'
+  process.env.CORE_AI_MODEL || 'llama-3.3-70b-versatile'
 
 function resolveGroqApiKey(): string | undefined {
   if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY

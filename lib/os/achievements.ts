@@ -9,7 +9,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'first_login',
     title: 'Signed In',
-    description: 'Completed the NEXUS login screen.',
+    description: 'Completed the CORE login screen.',
     glyph: 'IN',
   },
   {
@@ -68,7 +68,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
 ]
 
-const STORAGE_KEY = 'nexus-achievements'
+const STORAGE_KEY = 'core-achievements'
 
 export function loadUnlockedAchievements(): string[] {
   if (typeof window === 'undefined') return []
