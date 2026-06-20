@@ -5,10 +5,8 @@ import {
   type TurnstileInstance,
 } from '@marsidev/react-turnstile'
 import { motion } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePortfolio } from '../os/portfolio-context'
-
-const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 type FormState = {
   name: string
@@ -30,7 +28,27 @@ export function ContactApp() {
     website: '',
   })
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string | null>(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? null,
+  )
   const turnstileRef = useRef<TurnstileInstance | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch('/api/contact/config')
+      .then((res) => res.json())
+      .then((data: { turnstileSiteKey?: string | null }) => {
+        if (!cancelled && data.turnstileSiteKey) {
+          setTurnstileSiteKey(data.turnstileSiteKey)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const channels = [
     { label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
@@ -83,6 +101,14 @@ export function ContactApp() {
           setErrorMessage(
             'Email delivery is not configured yet. Use the email link above for now.',
           )
+          return
+        }
+
+        if (data?.error === 'turnstile_required') {
+          setSubmitState('error')
+          setErrorMessage('Complete the security check and try again.')
+          turnstileRef.current?.reset()
+          setTurnstileToken(null)
           return
         }
 

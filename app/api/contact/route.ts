@@ -1,5 +1,6 @@
 import { contactFormSchema } from '@/lib/contact/schema'
 import { sendContactEmail } from '@/lib/contact/send-contact-email'
+import { isTurnstileEnabled } from '@/lib/contact/turnstile-config'
 import { verifyTurnstileToken } from '@/lib/contact/verify-turnstile'
 import { loadPortfolio } from '@/lib/content/load-portfolio'
 
@@ -21,12 +22,12 @@ export async function POST(req: Request) {
       return Response.json({ ok: true })
     }
 
-    const turnstileRequired = Boolean(process.env.TURNSTILE_SECRET_KEY)
+    const turnstileRequired = isTurnstileEnabled()
     if (turnstileRequired && !turnstileToken) {
       return Response.json({ error: 'turnstile_required' }, { status: 400 })
     }
 
-    if (turnstileToken) {
+    if (turnstileToken && process.env.TURNSTILE_SECRET_KEY) {
       const remoteIp =
         req.headers.get('cf-connecting-ip') ??
         req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
