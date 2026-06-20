@@ -28,7 +28,8 @@ export class CursorRoom extends DurableObject {
 
     const id = crypto.randomUUID()
     const color = pickColor(this.seq++)
-    const name = randomLabel()
+    const provided = new URL(request.url).searchParams.get('name')
+    const name = sanitizeName(provided, randomLabel())
     const self: Attachment = { id, color, name, x: 0.5, y: 0.5 }
 
     // Snapshot existing peers before adding the new connection.
@@ -104,4 +105,11 @@ export class CursorRoom extends DurableObject {
 function clamp01(v: unknown): number | null {
   if (typeof v !== 'number' || !Number.isFinite(v)) return null
   return Math.min(1, Math.max(0, v))
+}
+
+function sanitizeName(raw: string | null, fallback: string): string {
+  if (!raw) return fallback
+  // eslint-disable-next-line no-control-regex
+  const cleaned = raw.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24)
+  return cleaned.length > 0 ? cleaned : fallback
 }

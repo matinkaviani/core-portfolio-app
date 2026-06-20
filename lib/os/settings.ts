@@ -6,6 +6,7 @@ export interface CoreSettings {
   accentHue: number
   reducedMotion: boolean
   skipBoot: boolean
+  presence: boolean
 }
 
 export const DEFAULT_SETTINGS: CoreSettings = {
@@ -14,6 +15,7 @@ export const DEFAULT_SETTINGS: CoreSettings = {
   accentHue: 240,
   reducedMotion: false,
   skipBoot: false,
+  presence: true,
 }
 
 export const WALLPAPER_OPTIONS: { id: WallpaperId; label: string }[] = [

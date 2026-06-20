@@ -7,6 +7,8 @@ import {
   type PeerState,
   type ServerMessage,
 } from '@/lib/os/cursor-protocol'
+import { useSettings } from './settings-context'
+import { useSession } from './session-context'
 
 const SEND_INTERVAL_MS = 45
 const MAX_INITIAL_ATTEMPTS = 4
@@ -14,12 +16,19 @@ const MAX_INITIAL_ATTEMPTS = 4
 type Peers = Record<string, PeerState>
 
 export function LiveCursors() {
+  const { settings } = useSettings()
+  const { visitorName } = useSession()
+  const presenceEnabled = settings.presence
   const [peers, setPeers] = useState<Peers>({})
   const [viewport, setViewport] = useState({ w: 0, h: 0 })
   const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (!presenceEnabled) {
+      setPeers({})
+      return
+    }
 
     setViewport({ w: window.innerWidth, h: window.innerHeight })
     const onResize = () =>
@@ -34,7 +43,8 @@ export function LiveCursors() {
     let pending: { x: number; y: number } | null = null
 
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const url = `${proto}://${window.location.host}${CURSOR_PATH}`
+    const nameParam = visitorName ? `?name=${encodeURIComponent(visitorName)}` : ''
+    const url = `${proto}://${window.location.host}${CURSOR_PATH}${nameParam}`
 
     const connect = () => {
       let ws: WebSocket
@@ -120,7 +130,7 @@ export function LiveCursors() {
       wsRef.current?.close()
       wsRef.current = null
     }
-  }, [])
+  }, [presenceEnabled, visitorName])
 
   const list = Object.values(peers)
 

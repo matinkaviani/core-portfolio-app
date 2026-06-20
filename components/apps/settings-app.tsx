@@ -100,6 +100,11 @@ export function SettingsApp() {
           checked={settings.skipBoot}
           onChange={(v) => change('skipBoot', v)}
         />
+        <ToggleRow
+          label="Show live cursors (presence)"
+          checked={settings.presence}
+          onChange={(v) => change('presence', v)}
+        />
 
         <button
           type="button"
