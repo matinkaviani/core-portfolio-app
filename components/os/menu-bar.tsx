@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useCommandPalette } from './command-palette'
+import { useMissionControl } from './mission-control'
 import { useOS } from './os-context'
 import { usePortfolio } from './portfolio-context'
 import { useSession } from './session-context'
@@ -53,6 +54,7 @@ export function MenuBar() {
   const { profile } = usePortfolio()
   const { logout } = useSession()
   const { openPalette } = useCommandPalette()
+  const missionControl = useMissionControl()
   const now = useClock()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [mobileMenu, setMobileMenu] = useState(false)
@@ -94,6 +96,12 @@ export function MenuBar() {
       ],
       View: [
         {
+          label: 'Mission Control',
+          shortcut: '⌃↑',
+          action: () => missionControl.open(),
+        },
+        { divider: true, label: '' },
+        {
           label: activeId && windows.find((w) => w.id === activeId)?.maximized
             ? 'Exit Full Screen'
             : 'Enter Full Screen',
@@ -132,6 +140,7 @@ export function MenuBar() {
     profile.name,
     profile.email,
     logout,
+    missionControl,
     activeId,
     windows,
     hasActive,

@@ -6,6 +6,7 @@ import { useOS } from './os-context'
 import { useAchievements } from './achievements-context'
 import { useCommandPalette } from './command-palette'
 import { useContextMenu } from './context-menu'
+import { useMissionControl } from './mission-control'
 
 const KONAMI = [
   'ArrowUp',
@@ -32,6 +33,7 @@ export function useGlobalShortcuts(enabled: boolean) {
   const { unlock } = useAchievements()
   const { open, openPalette, closePalette } = useCommandPalette()
   const { isOpen: contextMenuOpen, closeContextMenu } = useContextMenu()
+  const missionControl = useMissionControl()
 
   useEffect(() => {
     if (!enabled) return
@@ -50,7 +52,31 @@ export function useGlobalShortcuts(enabled: boolean) {
         return
       }
 
+      // ⌃↑ open Mission Control · ⌃↓ close · F3 toggle
+      if (e.ctrlKey && !e.metaKey && key === 'arrowup' && !typing) {
+        e.preventDefault()
+        e.stopPropagation()
+        missionControl.open()
+        return
+      }
+      if (
+        (e.ctrlKey && !e.metaKey && key === 'arrowdown' && !typing) ||
+        key === 'f3'
+      ) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (key === 'f3') missionControl.toggle()
+        else missionControl.close()
+        return
+      }
+
       if (e.key === 'Escape') {
+        if (missionControl.active) {
+          e.preventDefault()
+          e.stopPropagation()
+          missionControl.close()
+          return
+        }
         if (open) {
           e.preventDefault()
           e.stopPropagation()
@@ -120,7 +146,72 @@ export function useGlobalShortcuts(enabled: boolean) {
     closeApp,
     activeId,
     unlock,
+    missionControl,
   ])
+
+  // Trackpad swipe: two-finger swipe up opens Mission Control, swipe down closes.
+  // (Browsers can't read true three-finger gestures — those are captured by the OS —
+  // so we use the wheel stream that trackpad swipes actually produce.)
+  useEffect(() => {
+    if (!enabled) return
+
+    const TRIGGER = 140
+    const IDLE_RESET_MS = 220
+    let accUp = 0
+    let accDown = 0
+    let lastAt = 0
+
+    const onWheel = (e: WheelEvent) => {
+      const now = performance.now()
+      if (now - lastAt > IDLE_RESET_MS) {
+        accUp = 0
+        accDown = 0
+      }
+      lastAt = now
+
+      if (missionControl.active) {
+        // swipe down to dismiss
+        if (e.deltaY > 0) {
+          accDown += e.deltaY
+          accUp = 0
+          if (accDown > TRIGGER) {
+            missionControl.close()
+            accDown = 0
+          }
+        } else {
+          accUp = 0
+          accDown = 0
+        }
+        return
+      }
+
+      // Only open from the desktop background (ignore scrolling inside windows),
+      // and only when there is at least one window to manage.
+      const target = e.target as HTMLElement | null
+      if (target?.closest('[data-core-window]')) {
+        accUp = 0
+        return
+      }
+      if (windows.length === 0) {
+        accUp = 0
+        return
+      }
+
+      if (e.deltaY < 0) {
+        accUp += -e.deltaY
+        accDown = 0
+        if (accUp > TRIGGER) {
+          missionControl.open()
+          accUp = 0
+        }
+      } else {
+        accUp = 0
+      }
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: true })
+    return () => window.removeEventListener('wheel', onWheel)
+  }, [enabled, missionControl, windows.length])
 
   useEffect(() => {
     if (!enabled) return

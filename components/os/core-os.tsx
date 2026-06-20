@@ -8,6 +8,7 @@ import { PortfolioProvider } from '@/components/os/portfolio-context'
 import { SettingsProvider } from '@/components/os/settings-context'
 import { AchievementsProvider, useAchievements } from '@/components/os/achievements-context'
 import { CommandPaletteProvider } from '@/components/os/command-palette'
+import { MissionControlProvider } from '@/components/os/mission-control'
 import { SessionProvider, useSession } from '@/components/os/session-context'
 import { BootSequence } from '@/components/os/boot-sequence'
 import { Desktop } from '@/components/os/desktop'
@@ -20,17 +21,19 @@ function CoreShell({ portfolio }: { portfolio: PortfolioData }) {
 
   return (
     <OSProvider key={sessionKey}>
-      <CommandPaletteProvider>
-        <ContextMenuProvider>
-          {!booted && <LoginFlow ownerName={portfolio.profile.name} />}
-          {booted && (
-            <Desktop
-              visitorName={visitorName}
-              ownerName={portfolio.profile.name}
-            />
-          )}
-        </ContextMenuProvider>
-      </CommandPaletteProvider>
+      <MissionControlProvider>
+        <CommandPaletteProvider>
+          <ContextMenuProvider>
+            {!booted && <LoginFlow ownerName={portfolio.profile.name} />}
+            {booted && (
+              <Desktop
+                visitorName={visitorName}
+                ownerName={portfolio.profile.name}
+              />
+            )}
+          </ContextMenuProvider>
+        </CommandPaletteProvider>
+      </MissionControlProvider>
     </OSProvider>
   )
 }

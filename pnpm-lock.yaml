@@ -25,7 +25,7 @@ importers:
         version: 1.5.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@opennextjs/cloudflare':
         specifier: ^1.19.11
-        version: 1.19.11(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.101.0)
+        version: 1.19.11(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.101.0(@cloudflare/workers-types@4.20260620.1))
       '@vercel/analytics':
         specifier: 1.6.1
         version: 1.6.1(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^12.40.0
         version: 12.40.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       lucide-react:
         specifier: ^1.16.0
         version: 1.17.0(react@19.2.4)
@@ -69,6 +72,9 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260620.1
+        version: 4.20260620.1
       '@tailwindcss/postcss':
         specifier: ^4.2.0
         version: 4.2.0
@@ -95,7 +101,7 @@ importers:
         version: 5.7.3
       wrangler:
         specifier: ^4.101.0
-        version: 4.101.0
+        version: 4.101.0(@cloudflare/workers-types@4.20260620.1)
 
 packages:
 
@@ -583,6 +589,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@4.20260620.1':
+    resolution: {integrity: sha512-WB81w9u1bAS7KcekpC7/nYhLpIXAEtgybso7XgGJV8CQKNkNPYcyjvICLdghOlDBi/9Ivk+f7NRckV2Bkq1bDg==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2403,6 +2412,9 @@ packages:
   hono@4.12.25:
     resolution: {integrity: sha512-2NFaIyNVgJmBs/ecmtGzlmluTFs5cHEWGTdu0t1HBwYzoGXOL5nUQBRMXsXWla5i4KkG//QMzVP88m1+I3fdAQ==}
     engines: {node: '>=16.9.0'}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
@@ -4326,6 +4338,8 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20260616.1':
     optional: true
 
+  '@cloudflare/workers-types@4.20260620.1': {}
+
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
@@ -4904,7 +4918,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@opennextjs/cloudflare@1.19.11(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.101.0)':
+  '@opennextjs/cloudflare@1.19.11(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.101.0(@cloudflare/workers-types@4.20260620.1))':
     dependencies:
       '@ast-grep/napi': 0.40.5
       '@dotenvx/dotenvx': 1.31.0
@@ -4916,7 +4930,7 @@ snapshots:
       glob: 12.0.0
       next: 16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       ts-tqdm: 0.8.6
-      wrangler: 4.101.0
+      wrangler: 4.101.0(@cloudflare/workers-types@4.20260620.1)
       yargs: 18.0.0
     transitivePeerDependencies:
       - encoding
@@ -5950,6 +5964,8 @@ snapshots:
 
   hono@4.12.25: {}
 
+  html-to-image@1.11.13: {}
+
   http-errors@2.0.1:
     dependencies:
       depd: 2.0.0
@@ -6852,7 +6868,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20260616.1
       '@cloudflare/workerd-windows-64': 1.20260616.1
 
-  wrangler@4.101.0:
+  wrangler@4.101.0(@cloudflare/workers-types@4.20260620.1):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
       '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260616.1)
@@ -6863,6 +6879,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       workerd: 1.20260616.1
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20260620.1
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil

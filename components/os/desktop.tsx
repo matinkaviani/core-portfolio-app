@@ -24,6 +24,7 @@ import {
   useContextMenu,
 } from './context-menu'
 import { Dock } from './dock'
+import { LiveCursors } from './live-cursors'
 import { MenuBar } from './menu-bar'
 import { useOS } from './os-context'
 import { usePortfolio } from './portfolio-context'
@@ -125,6 +126,8 @@ export function Desktop({
       </div>
 
       <Dock />
+
+      <LiveCursors />
     </main>
   )
 }

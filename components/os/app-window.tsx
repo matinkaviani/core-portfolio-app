@@ -230,7 +230,10 @@ export function AppWindow({ win, children }: AppWindowProps) {
           <div className={cn(isMobile ? 'w-6' : 'w-12')} />
         </div>
 
-        <div className="core-scrollbar min-h-0 flex-1 overflow-auto">
+        <div
+          data-window-id={win.id}
+          className="core-scrollbar min-h-0 flex-1 overflow-auto"
+        >
           {children}
         </div>
 

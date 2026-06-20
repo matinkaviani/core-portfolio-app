@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -15,6 +16,7 @@ import {
   getViewportSize,
   isMobileViewport,
 } from '@/lib/os/viewport'
+import { loadSession, saveSession } from '@/lib/os/window-session'
 
 export type AppParams = Record<string, string>
 
@@ -68,6 +70,64 @@ export function OSProvider({ children }: { children: ReactNode }) {
   const [appParams, setAppParamsState] = useState<Partial<Record<AppId, AppParams>>>({})
   const zRef = useRef(10)
   const openCount = useRef(0)
+  const hydratedRef = useRef(false)
+
+  // Restore the previous session (window layout, z-order, params) after mount.
+  // Runs once on the client to avoid SSR/hydration mismatch.
+  useEffect(() => {
+    if (hydratedRef.current) return
+    hydratedRef.current = true
+
+    const session = loadSession()
+    if (!session) return
+
+    const { w: vw, h: vh } = getViewportSize()
+    const mobile = isMobileViewport(vw)
+
+    const restored: WindowState[] = session.windows.map((win) => {
+      const clamped = clampWindowSize(win.w, win.h, vw, vh, mobile)
+      const maxX = Math.max(8, vw - clamped.w - 8)
+      const maxY = Math.max(40, vh - clamped.h - (mobile ? 80 : 100))
+      return {
+        id: win.id,
+        x: Math.min(Math.max(8, win.x), maxX),
+        y: Math.min(Math.max(40, win.y), maxY),
+        w: clamped.w,
+        h: clamped.h,
+        z: win.z,
+        minimized: win.minimized,
+        maximized: mobile ? true : win.maximized,
+      }
+    })
+
+    zRef.current = restored.reduce((max, w) => Math.max(max, w.z), 10)
+    openCount.current = restored.length
+    setWindows(restored)
+    setActiveId(session.activeId)
+    setAppParamsState(session.appParams)
+  }, [])
+
+  // Persist the session whenever layout/state changes (after hydration).
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    const handle = setTimeout(() => {
+      saveSession({
+        windows: windows.map((w) => ({
+          id: w.id,
+          x: w.x,
+          y: w.y,
+          w: w.w,
+          h: w.h,
+          z: w.z,
+          minimized: w.minimized,
+          maximized: w.maximized,
+        })),
+        activeId,
+        appParams,
+      })
+    }, 250)
+    return () => clearTimeout(handle)
+  }, [windows, activeId, appParams])
 
   const setAppParams = useCallback((id: AppId, params: AppParams) => {
     setAppParamsState((prev) => ({ ...prev, [id]: params }))

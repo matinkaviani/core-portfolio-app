@@ -3,6 +3,7 @@
 import { APPS, APP_ORDER } from '@/lib/os-data'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { AppIcon } from './app-icons'
 import { useContextMenu } from './context-menu'
 import { useOS } from './os-context'
 
@@ -38,23 +39,25 @@ export function Dock() {
               aria-label={`Open ${meta.name}`}
             >
               <motion.span
-                whileHover={{ y: -6, scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
+                initial="rest"
+                animate={active ? 'active' : 'rest'}
+                whileHover="hover"
+                whileTap="tap"
+                variants={{
+                  rest: { y: 0, scale: 1 },
+                  active: { y: 0, scale: 1.04 },
+                  hover: { y: -6, scale: 1.08 },
+                  tap: { scale: 0.92 },
+                }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-xl border font-mono text-xs font-semibold transition-colors sm:h-12 sm:w-12 sm:text-sm',
+                  'flex h-10 w-10 items-center justify-center rounded-xl border transition-colors sm:h-12 sm:w-12',
                   active
                     ? 'border-primary/50 bg-primary/15 text-primary'
-                    : 'border-border bg-card text-foreground/80 group-hover:text-foreground',
+                    : 'border-border bg-card text-foreground/70 group-hover:text-foreground',
                 )}
               >
-                <span
-                  className={cn(
-                    id === 'settings' && 'text-lg leading-none sm:text-[22px]',
-                  )}
-                >
-                  {meta.glyph}
-                </span>
+                <AppIcon id={id} />
               </motion.span>
               <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] font-medium text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 sm:block">
                 {meta.name}
