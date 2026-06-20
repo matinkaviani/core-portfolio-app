@@ -18,6 +18,18 @@ import { APPS, APP_ORDER } from '@/lib/os-data'
 import { flattenFiles, buildContentTree } from '@/lib/content/files'
 import { cn } from '@/lib/utils'
 
+const RESUME_PATH = '/Matin_Kaviani_CV.pdf'
+const RESUME_FILENAME = 'Matin_Kaviani_CV.pdf'
+
+function downloadResume() {
+  const link = document.createElement('a')
+  link.href = RESUME_PATH
+  link.download = RESUME_FILENAME
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+
 export interface CommandPaletteItem {
   id: string
   label: string
@@ -114,6 +126,20 @@ function CommandPaletteOverlay() {
         group: 'Assistant',
         keywords: 'ai hire job match',
         action: () => openApp('assistant', { mode: 'recruiter' }),
+      },
+      {
+        id: 'resume-view',
+        label: 'View Résumé',
+        group: 'Documents',
+        keywords: 'cv resume curriculum vitae pdf preview',
+        action: () => openApp('resume'),
+      },
+      {
+        id: 'resume-download',
+        label: 'Download Résumé (PDF)',
+        group: 'Documents',
+        keywords: 'cv resume curriculum vitae pdf save download',
+        action: () => downloadResume(),
       },
       {
         id: 'cmd-help',

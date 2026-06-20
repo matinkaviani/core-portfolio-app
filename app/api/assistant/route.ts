@@ -3,7 +3,6 @@ import { loadPortfolio } from '@/lib/content/load-portfolio'
 import { buildSystemPrompt } from '@/lib/ai/persona'
 import { buildRecruiterPrompt } from '@/lib/ai/recruiter'
 import { getAssistantModel } from '@/lib/ai/model'
-import { retrieveKnowledge } from '@/lib/content/knowledge-base'
 
 export const maxDuration = 30
 
@@ -37,15 +36,6 @@ export async function POST(req: Request) {
         .map((p) => p.text)
         .join('') ?? ''
 
-    const trace = retrieveKnowledge(portfolio, lastQuery, 6).map(
-      ({ id, source, title, text }) => ({
-        id,
-        source,
-        title,
-        preview: text.slice(0, 160).replace(/\s+/g, ' '),
-      }),
-    )
-
     const system =
       mode === 'recruiter' && jobDescription.trim()
         ? buildRecruiterPrompt(portfolio, jobDescription)
@@ -61,13 +51,7 @@ export async function POST(req: Request) {
       },
     })
 
-    const response = result.toUIMessageStreamResponse()
-    const headers = new Headers(response.headers)
-    headers.set('x-core-trace', JSON.stringify(trace))
-    return new Response(response.body, {
-      status: response.status,
-      headers,
-    })
+    return result.toUIMessageStreamResponse()
   } catch (err) {
     console.error('[assistant] route error:', err)
     return new Response(

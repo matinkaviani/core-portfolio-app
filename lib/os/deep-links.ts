@@ -12,6 +12,7 @@ const VALID_APPS = new Set<AppId>([
   'assistant',
   'projects',
   'experience',
+  'resume',
   'contact',
   'settings',
   'finder',

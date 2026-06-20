@@ -23,6 +23,7 @@ function buildHelp(name: string): string {
   about         who is ${name}
   projects      list selected work
   experience    show career timeline
+  resume        open my résumé (CV)
   skills        show skill set
   contact       how to reach me
   ls            list /content files
@@ -39,6 +40,7 @@ const VALID_APPS: AppId[] = [
   'assistant',
   'projects',
   'experience',
+  'resume',
   'contact',
   'terminal',
   'finder',
@@ -155,6 +157,11 @@ export function TerminalApp() {
         push('output', 'launching assistant…')
         openApp('assistant')
         break
+      case 'resume':
+      case 'cv':
+        push('output', 'opening résumé in Quick Look…')
+        openApp('resume')
+        break
       case 'open': {
         const target = args[0] as AppId
         if (VALID_APPS.includes(target)) {
@@ -164,7 +171,7 @@ export function TerminalApp() {
         } else {
           push(
             'output',
-            `open: unknown app '${args[0] ?? ''}'. try: assistant, projects, finder, settings`,
+            `open: unknown app '${args[0] ?? ''}'. try: assistant, projects, resume, finder, settings`,
           )
         }
         break

@@ -15,6 +15,7 @@ import { ContactApp } from '../apps/contact-app'
 import { ExperienceApp } from '../apps/experience-app'
 import { FinderApp } from '../apps/finder-app'
 import { ProjectsApp } from '../apps/projects-app'
+import { ResumeApp } from '../apps/resume-app'
 import { SettingsApp } from '../apps/settings-app'
 import { TerminalApp } from '../apps/terminal-app'
 import { AppWindow } from './app-window'
@@ -41,6 +42,8 @@ function renderApp(id: AppId) {
       return <ProjectsApp />
     case 'experience':
       return <ExperienceApp />
+    case 'resume':
+      return <ResumeApp />
     case 'contact':
       return <ContactApp />
     case 'finder':

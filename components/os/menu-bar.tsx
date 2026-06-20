@@ -10,6 +10,18 @@ import { useOS } from './os-context'
 import { usePortfolio } from './portfolio-context'
 import { useSession } from './session-context'
 
+const RESUME_PATH = '/Matin_Kaviani_CV.pdf'
+const RESUME_FILENAME = 'Matin_Kaviani_CV.pdf'
+
+function downloadResume() {
+  const link = document.createElement('a')
+  link.href = RESUME_PATH
+  link.download = RESUME_FILENAME
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+
 function useClock() {
   const [now, setNow] = useState<Date | null>(null)
   useEffect(() => {
@@ -61,6 +73,7 @@ export function MenuBar() {
         { label: 'About This Portfolio', action: () => openApp('experience') },
         { divider: true, label: '' },
         { label: 'View Projects', shortcut: '⌘1', action: () => openApp('projects') },
+        { label: 'View Résumé', action: () => openApp('resume') },
         { label: 'Contact', shortcut: '⌘2', action: () => openApp('contact') },
         { divider: true, label: '' },
         { label: 'Log Out', action: () => logout() },
@@ -68,6 +81,9 @@ export function MenuBar() {
       File: [
         { label: 'New Terminal', shortcut: '⌘⇧L', action: () => openApp('terminal') },
         { label: 'New Assistant Chat', shortcut: '⌘⇧A', action: () => openApp('assistant') },
+        { divider: true, label: '' },
+        { label: 'Open Résumé', action: () => openApp('resume') },
+        { label: 'Download Résumé', action: () => downloadResume() },
         { divider: true, label: '' },
         {
           label: 'Close Window',

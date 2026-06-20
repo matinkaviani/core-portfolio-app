@@ -3,6 +3,7 @@ export type AppId =
   | 'assistant'
   | 'projects'
   | 'experience'
+  | 'resume'
   | 'contact'
   | 'settings'
   | 'finder'
@@ -69,6 +70,13 @@ export const APPS: Record<AppId, AppMeta> = {
     size: { w: 800, h: 620 },
     glyph: 'EX',
   },
+  resume: {
+    id: 'resume',
+    name: 'Résumé',
+    description: 'Quick Look — CV',
+    size: { w: 940, h: 700 },
+    glyph: 'CV',
+  },
   contact: {
     id: 'contact',
     name: 'Contact',
@@ -97,6 +105,7 @@ export const APP_ORDER: AppId[] = [
   'assistant',
   'projects',
   'experience',
+  'resume',
   'contact',
   'finder',
   'settings',

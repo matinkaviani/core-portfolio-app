@@ -11,13 +11,6 @@ import { buildAssistantGreeting } from '@/lib/ai/persona'
 import { localAnswer } from '@/lib/ai/local-answer'
 import { generateFollowUps } from '@/lib/ai/follow-ups'
 
-interface TraceChunk {
-  id: string
-  source: string
-  title: string
-  preview: string
-}
-
 function textOf(message: UIMessage): string {
   return (message.parts ?? [])
     .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
@@ -39,7 +32,6 @@ export function AssistantApp() {
     params.mode === 'recruiter',
   )
   const [jobDescription, setJobDescription] = useState('')
-  const [trace, setTrace] = useState<TraceChunk[]>([])
   const [followUps, setFollowUps] = useState<string[]>([])
   const [fallback, setFallback] = useState<
     { id: string; role: 'user' | 'assistant'; text: string }[]
@@ -79,7 +71,7 @@ export function AssistantApp() {
           },
         ],
       },
-    ],
+    ] as UIMessage[],
   })
 
   const busy = status === 'submitted' || status === 'streaming'
@@ -89,21 +81,7 @@ export function AssistantApp() {
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth',
     })
-  }, [messages, fallback, busy, trace, followUps])
-
-  const fetchTrace = async (query: string) => {
-    try {
-      const res = await fetch('/api/assistant/trace', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ query }),
-      })
-      const data = (await res.json()) as { chunks: TraceChunk[] }
-      setTrace(data.chunks ?? [])
-    } catch {
-      setTrace([])
-    }
-  }
+  }, [messages, fallback, busy, followUps])
 
   const send = async (text: string) => {
     const trimmed = text.trim()
@@ -127,7 +105,6 @@ export function AssistantApp() {
       return
     }
 
-    await fetchTrace(trimmed)
     sendMessage({ text: trimmed })
   }
 
@@ -249,33 +226,7 @@ export function AssistantApp() {
         ))}
 
         <AnimatePresence>
-          {busy && trace.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="rounded-xl border border-border bg-card/80 p-3"
-            >
-              <p className="text-[11px] font-medium uppercase tracking-wider text-primary">
-                Retrieval trace
-              </p>
-              <ul className="mt-2 space-y-2">
-                {trace.map((chunk) => (
-                  <li key={chunk.id} className="text-xs">
-                    <p className="font-medium text-foreground">{chunk.title}</p>
-                    <p className="font-mono text-[10px] text-muted-foreground">
-                      {chunk.source}
-                    </p>
-                    <p className="mt-0.5 text-muted-foreground">{chunk.preview}…</p>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {status === 'submitted' && trace.length === 0 && (
+          {status === 'submitted' && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

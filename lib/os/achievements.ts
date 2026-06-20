@@ -55,6 +55,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     glyph: 'HR',
   },
   {
+    id: 'curriculum_vitae',
+    title: 'Curriculum Vitae',
+    description: 'Opened the résumé in Quick Look.',
+    glyph: 'CV',
+  },
+  {
     id: 'deep_link',
     title: 'Deep Link',
     description: 'Arrived via a shareable URL.',
