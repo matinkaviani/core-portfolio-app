@@ -49,24 +49,24 @@ const PROJECT_META: Record<
   string,
   Pick<ProjectItem, 'category' | 'year' | 'status'>
 > = {
-  'trading-platform': {
-    category: 'FinTech',
+  'agah-research': {
+    category: 'Capital Markets',
     year: '2024',
     status: 'Live',
   },
-  'affiliate-system': {
-    category: 'Platform',
+  'dr-erfan-orchid': {
+    category: 'E-Commerce / SaaS',
     year: '2024',
     status: 'Live',
   },
-  'ai-automation': {
-    category: 'AI / Automation',
-    year: '2025',
+  'dara-csdi': {
+    category: 'Capital Markets',
+    year: '2024',
     status: 'Live',
   },
-  'diagram-generator': {
-    category: 'Developer Tools',
-    year: '2024',
+  'setareh-masoumi': {
+    category: 'Portfolio / CMS',
+    year: '2023',
     status: 'Live',
   },
 }
@@ -186,28 +186,77 @@ function parseSubsections(text: string): Record<string, string> {
   return sections
 }
 
+function parseExperienceHeading(heading: string): {
+  company: string
+  role: string
+} {
+  const parts = heading.split(/\s*[—·]\s*/)
+  if (parts.length >= 2) {
+    return {
+      company: parts[0].trim(),
+      role: parts.slice(1).join(' — ').trim(),
+    }
+  }
+  return { company: 'Product & Platform Work', role: heading.trim() }
+}
+
+function slugifyId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function parseExperienceMeta(body: string): {
+  period: string
+  location: string
+  rest: string
+} {
+  let period = 'Present'
+  let location = ''
+  const restLines: string[] = []
+
+  for (const line of body.split('\n')) {
+    const periodMatch = line.match(/^Period:\s*(.+)$/i)
+    const locationMatch = line.match(/^Location:\s*(.+)$/i)
+    if (periodMatch) period = periodMatch[1].trim()
+    else if (locationMatch) location = locationMatch[1].trim()
+    else restLines.push(line)
+  }
+
+  return { period, location, rest: restLines.join('\n').trim() }
+}
+
 function parseExperience(
   markdown: string,
   location: string,
 ): ExperienceItem[] {
   const sections = parseSections(markdown)
-  const role = Object.keys(sections)[0] ?? 'Frontend Engineer'
-  const roleBody = sections[role] ?? ''
-  const subsections = parseSubsections(roleBody)
-  const responsibilities = parseListItems(subsections.Responsibilities ?? '')
-  const achievements = parseListItems(subsections.Achievements ?? '')
 
-  return [
-    {
-      id: 'frontend-engineer',
+  return Object.entries(sections).map(([heading, body]) => {
+    const { company, role } = parseExperienceHeading(heading)
+    const { period, location: jobLocation, rest } = parseExperienceMeta(body)
+    const subsections = parseSubsections(rest)
+    const summary =
+      subsections.Summary?.replace(/\n+/g, ' ').trim() ??
+      ''
+    const highlights = parseListItems(
+      subsections.Highlights ??
+        subsections.Achievements ??
+        subsections.Responsibilities ??
+        '',
+    )
+
+    return {
+      id: slugifyId(company),
       role,
-      company: 'Product & Platform Work',
-      period: 'Present',
-      location,
-      summary: responsibilities.join(' '),
-      highlights: achievements.length ? achievements : responsibilities,
-    },
-  ]
+      company,
+      period,
+      location: jobLocation || location,
+      summary: summary || highlights[0] || '',
+      highlights: summary ? highlights : highlights.slice(1),
+    }
+  })
 }
 
 function loadProfile(

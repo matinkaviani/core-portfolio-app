@@ -1,37 +1,60 @@
 # Skills
 
-## Core Frontend
-- React
-- Next.js (App Router)
+## Languages & Frameworks
 - TypeScript
 - JavaScript (ES6+)
+- React
+- Next.js (App Router, SSR, SSG, ISR, PPR, Middleware)
+- Vue.js / Nuxt.js
 
-## Styling & UI
+## UI & Styling
 - Tailwind CSS
+- shadcn/ui
+- Ant Design
+- Base UI / Radix UI
+- SCSS / CSS Modules
 - Framer Motion
-- CSS Architecture
-- Component Design Systems
 
-## State & Data
+## State & Forms
 - React Query
-- Redux / Zustand
-- API Integration
-- Data Fetching Patterns
+- Zustand
+- Recoil
+- Redux / RTK
+- TanStack Form
+- React Hook Form
+- Zod
 
-## Backend / Integration
+## Data & Visualization
+- Highcharts
+- Recharts
+- AG Grid
+- TanStack Table
 - REST APIs
-- GraphQL (if applicable)
-- Node.js basics
+- GraphQL
 
-## AI & Automation
-- OpenAI API
-- Groq API
-- Prompt Engineering
-- RAG Systems (basic understanding)
-- Automation workflows (n8n, etc.)
+## Backend & Platform
+- Node.js
+- PostgreSQL
+- Firebase
+- Strapi
+- Payload CMS
+- Server Actions / API Routes
 
-## Tools
-- Git / GitHub
-- Vite
-- Webpack basics
-- CI/CD basics
+## Quality & Delivery
+- Jest
+- ESLint / Prettier
+- Husky
+- Storybook
+- Git
+- Docker
+- CI/CD
+- Monorepo (Turborepo)
+- Vite / SWC
+- Puppeteer
+
+## Engineering Practices
+- SOLID principles
+- Accessibility (a11y)
+- Micro-frontend architecture
+- Performance optimization
+- UI/UX collaboration

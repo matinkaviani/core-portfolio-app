@@ -6,12 +6,57 @@ import { useOS } from '../os/os-context'
 import { usePortfolio } from '../os/portfolio-context'
 import type { ProjectItem } from '@/lib/os-data'
 import { clearDeepLink, copyDeepLink, syncDeepLink } from '../os/use-deep-links'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const STATUS_STYLES: Record<ProjectItem['status'], string> = {
   Live: 'bg-emerald-400/15 text-emerald-300 border-emerald-400/30',
   'In progress': 'bg-amber-400/15 text-amber-300 border-amber-400/30',
   Archived: 'bg-muted text-muted-foreground border-border',
+}
+
+function getProjectUrl(project: ProjectItem): string | undefined {
+  const links = project.sections?.Links
+  if (!links) return undefined
+  const match = links.match(/https?:\/\/[^\s]+/)
+  return match?.[0]
+}
+
+function ExternalIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 16 16"
+      className="size-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <path d="M6 3h7v7M13 3 6 10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function LinkIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 16 16"
+      className="size-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <path
+        d="M6.5 9.5a3.5 3.5 0 0 0 4.95 0l1.5-1.5a3.5 3.5 0 0 0-4.95-4.95L7.25 4.3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9.5 6.5a3.5 3.5 0 0 0-4.95 0l-1.5 1.5a3.5 3.5 0 0 0 4.95 4.95l1.2-1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
 }
 
 export function ProjectsApp() {
@@ -21,6 +66,9 @@ export function ProjectsApp() {
   const initial =
     projects.find((p) => p.id === params.project) ?? projects[0]
   const [selected, setSelected] = useState<ProjectItem>(initial)
+  const [copied, setCopied] = useState(false)
+
+  const projectUrl = getProjectUrl(selected)
 
   useEffect(() => {
     if (params.project) {
@@ -28,6 +76,10 @@ export function ProjectsApp() {
       if (match) setSelected(match)
     }
   }, [params.project, projects])
+
+  useEffect(() => {
+    setCopied(false)
+  }, [selected.id])
 
   useEffect(() => {
     syncDeepLink('projects', { project: selected.id })
@@ -40,6 +92,8 @@ export function ProjectsApp() {
   const copyLink = async () => {
     const url = copyDeepLink('projects', { project: selected.id })
     await navigator.clipboard.writeText(url)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 2000)
   }
 
   const highlights = [
@@ -88,33 +142,63 @@ export function ProjectsApp() {
         transition={{ duration: 0.25 }}
         className="core-scrollbar flex-1 overflow-auto p-4 sm:p-6"
       >
-        <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
-          <span className="text-[11px] uppercase tracking-wider text-primary">
-            {selected.category}
-          </span>
-          <span
-            className={cn(
-              'rounded-full border px-2 py-0.5 text-[11px] font-medium',
-              STATUS_STYLES[selected.status],
-            )}
-          >
-            {selected.status}
-          </span>
-        </div>
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-          {selected.name}
-        </h2>
-        <button
-          type="button"
-          onClick={copyLink}
-          className="mt-2 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Copy shareable link
-        </button>
-        <p className="mt-1 font-mono text-xs text-muted-foreground">
-          {selected.year}
-        </p>
-        <p className="mt-4 max-w-prose text-sm leading-relaxed text-foreground/80">
+        <header className="mb-6 border-b border-border pb-5">
+          <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
+            <span className="text-[11px] uppercase tracking-wider text-primary">
+              {selected.category}
+            </span>
+            <span
+              className={cn(
+                'rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                STATUS_STYLES[selected.status],
+              )}
+            >
+              {selected.status}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                {selected.name}
+              </h2>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                {selected.year}
+              </p>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {projectUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  render={
+                    <a
+                      href={projectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                  nativeButton={false}
+                >
+                  <ExternalIcon />
+                  Open site
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyLink}
+              >
+                <LinkIcon />
+                {copied ? 'Copied!' : 'Copy link'}
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <p className="max-w-prose text-sm leading-relaxed text-foreground/80">
           {selected.description}
         </p>
 
