@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useOS } from '../os/os-context'
 import { usePortfolio } from '../os/portfolio-context'
@@ -67,6 +67,7 @@ export function ProjectsApp() {
     projects.find((p) => p.id === params.project) ?? projects[0]
   const [selected, setSelected] = useState<ProjectItem>(initial)
   const [copied, setCopied] = useState(false)
+  const detailRef = useRef<HTMLDivElement>(null)
 
   const projectUrl = getProjectUrl(selected)
 
@@ -79,6 +80,7 @@ export function ProjectsApp() {
 
   useEffect(() => {
     setCopied(false)
+    detailRef.current?.scrollTo({ top: 0 })
   }, [selected.id])
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export function ProjectsApp() {
   ].slice(0, 3)
 
   return (
-    <div className="flex h-full flex-col bg-[oklch(0.155_0.004_270)] md:flex-row">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[oklch(0.155_0.004_270)] md:flex-row">
       <aside className="core-scrollbar max-h-44 shrink-0 overflow-auto border-b border-border p-3 md:max-h-none md:w-64 md:border-b-0 md:border-r">
         <p className="px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Selected work
@@ -135,13 +137,17 @@ export function ProjectsApp() {
         </ul>
       </aside>
 
-      <motion.div
-        key={selected.id}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="core-scrollbar flex-1 overflow-auto p-4 sm:p-6"
+      <div
+        ref={detailRef}
+        className="core-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
       >
+        <motion.div
+          key={selected.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="p-4 sm:p-6"
+        >
         <header className="mb-6 border-b border-border pb-5">
           <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="text-[11px] uppercase tracking-wider text-primary">
@@ -233,7 +239,8 @@ export function ProjectsApp() {
             ))}
           </div>
         )}
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }
