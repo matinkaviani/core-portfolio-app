@@ -16,7 +16,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'spotlight',
     title: 'Spotlight',
     description: 'Opened the command palette.',
-    glyph: '⌘K',
+    glyph: '⌘J',
   },
   {
     id: 'explorer',

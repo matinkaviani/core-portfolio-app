@@ -45,7 +45,9 @@ export function useGlobalShortcuts(enabled: boolean) {
       const key = e.key.toLowerCase()
       const typing = isEditableTarget(e.target)
 
-      if (meta && key === 'k') {
+      // ⌘J — command palette / Spotlight (⌘K is hijacked by Chrome to focus
+      // the address bar and can't be reliably intercepted).
+      if (meta && !e.shiftKey && key === 'j') {
         e.preventDefault()
         e.stopPropagation()
         openPalette()
@@ -97,7 +99,7 @@ export function useGlobalShortcuts(enabled: boolean) {
         }
       }
 
-      // ⌘⇧L — terminal (avoids browser-reserved ⌘T)
+      // ⌘⇧L — terminal (avoids browser-reserved ⌘T / ⌘L)
       if (meta && e.shiftKey && key === 'l' && !typing) {
         e.preventDefault()
         e.stopPropagation()
@@ -105,20 +107,17 @@ export function useGlobalShortcuts(enabled: boolean) {
         return
       }
 
-      // ⌘⇧A — assistant (avoids browser-reserved ⌘N / ⌘J)
-      if (meta && e.shiftKey && key === 'a' && !typing) {
+      // ⌘⇧K — assistant (⌘⇧A is Chrome's "Search tabs")
+      if (meta && e.shiftKey && key === 'k' && !typing) {
         e.preventDefault()
         e.stopPropagation()
         openApp('assistant')
         return
       }
 
-      if (meta && key === 'w' && activeId) {
-        e.preventDefault()
-        e.stopPropagation()
-        closeApp(activeId)
-        return
-      }
+      // Note: ⌘W (close window) is intentionally NOT bound — Chrome reserves it
+      // to close the tab and ignores preventDefault. Use Esc to close the
+      // active window instead (handled above).
 
       const expected = KONAMI[konamiIndex]
       if (e.key === expected || e.key.toLowerCase() === expected) {
@@ -170,9 +169,9 @@ export function useGlobalShortcuts(enabled: boolean) {
       lastAt = now
 
       if (missionControl.active) {
-        // swipe down to dismiss
-        if (e.deltaY > 0) {
-          accDown += e.deltaY
+        // swipe down to dismiss (natural scrolling → deltaY < 0)
+        if (e.deltaY < 0) {
+          accDown += -e.deltaY
           accUp = 0
           if (accDown > TRIGGER) {
             missionControl.close()
@@ -197,8 +196,9 @@ export function useGlobalShortcuts(enabled: boolean) {
         return
       }
 
-      if (e.deltaY < 0) {
-        accUp += -e.deltaY
+      // swipe up to open (natural scrolling → deltaY > 0)
+      if (e.deltaY > 0) {
+        accUp += e.deltaY
         accDown = 0
         if (accUp > TRIGGER) {
           missionControl.open()

@@ -270,8 +270,8 @@ function MissionControlOverlay() {
           </div>
 
           <p className="pointer-events-none pb-3 text-center text-[11px] text-muted-foreground">
-            Swipe down with two fingers · or press{' '}
-            <span className="font-mono text-primary">Esc</span>
+            Swipe up to open · swipe down or press{' '}
+            <span className="font-mono text-primary">Esc</span> to close
           </p>
         </motion.div>
       )}

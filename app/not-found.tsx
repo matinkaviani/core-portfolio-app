@@ -1,18 +1,32 @@
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
     <main className="relative flex min-h-dvh flex-col bg-background core-grid">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]"
+        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-160 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]"
       />
 
       <header className="relative z-10 flex h-9 items-center border-b border-border core-glass px-3 text-xs">
         <div className="flex items-center gap-2 px-2 font-semibold tracking-tight">
-          <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
-            N
+          <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary text-primary-foreground">
+            <svg viewBox="0 0 24 24" fill="none" className="h-2.5 w-2.5" aria-hidden>
+              <path
+                d="M7 8l4 4-4 4"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M13 16h4"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
           </span>
           <span className="text-foreground">CORE</span>
         </div>

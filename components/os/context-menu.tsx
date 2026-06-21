@@ -137,7 +137,7 @@ function ContextMenuLayer({
         },
         {
           label: 'New Assistant Chat',
-          shortcut: '⌘⇧A',
+          shortcut: '⌘⇧K',
           action: () => run(() => os.openApp('assistant')),
         },
         { divider: true, label: '' },
@@ -238,17 +238,15 @@ function ContextMenuLayer({
     return [
       {
         label: 'Minimize',
-        shortcut: '⌘M',
         action: () => run(() => os.minimizeApp(appId)),
       },
       {
         label: maximized ? 'Exit Full Screen' : 'Enter Full Screen',
-        shortcut: '⌃⌘F',
         action: () => run(() => os.toggleMaximize(appId)),
       },
       {
         label: 'Close Window',
-        shortcut: '⌘W',
+        shortcut: 'Esc',
         action: () => run(() => os.closeApp(appId)),
       },
       { divider: true, label: '' },

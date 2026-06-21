@@ -228,7 +228,7 @@ function CommandPaletteOverlay() {
                 className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
               <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                ⌘K · Spotlight
+                ⌘J · Spotlight
               </p>
             </div>
             <ul className="max-h-80 overflow-auto p-2">

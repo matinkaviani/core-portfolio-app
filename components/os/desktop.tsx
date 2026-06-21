@@ -134,7 +134,7 @@ export function Desktop({
 
 const PRIMARY_ACTIONS: { id: AppId; label: string; hint: string }[] = [
   { id: 'terminal', label: 'Open Terminal', hint: '⌘⇧L' },
-  { id: 'assistant', label: 'Ask the AI', hint: '⌘⇧A' },
+  { id: 'assistant', label: 'Ask the AI', hint: '⌘⇧K' },
   { id: 'projects', label: 'View Work', hint: '' },
 ]
 
@@ -240,7 +240,7 @@ function WelcomePanel({
           <p className="mt-2 hidden text-center text-xs text-muted-foreground sm:mt-3 md:block">
             <span className="md:hidden">Tap </span>
             <span className="hidden md:inline">Press </span>
-            <span className="font-mono text-primary">⌘K</span>
+            <span className="font-mono text-primary">⌘J</span>
             <span className="hidden md:inline"> for Spotlight</span>
             <span className="md:hidden"> in the menu bar for Spotlight</span>
           </p>

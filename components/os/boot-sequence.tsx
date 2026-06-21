@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { setStoredVisitor } from '@/lib/os/session'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from './settings-context'
 
 const BOOT_LINES = [
@@ -92,7 +92,7 @@ export function BootSequence({
     <AnimatePresence>
       {phase !== 'exit' && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background core-grid px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-background core-grid px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, filter: 'blur(8px)' }}
           transition={{ duration: 0.6, ease: 'easeInOut' }}
@@ -103,8 +103,22 @@ export function BootSequence({
               animate={{ opacity: 1, y: 0 }}
               className="mb-10 flex items-center gap-3"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card font-mono text-sm font-semibold text-primary">
-                N
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-primary">
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+                  <path
+                    d="M7 8l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M13 16h4"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </div>
               <div>
                 <p className="text-sm font-semibold tracking-tight text-foreground">

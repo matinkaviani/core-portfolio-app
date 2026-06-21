@@ -74,22 +74,22 @@ export function MenuBar() {
       [profile.name.split(' ')[0]]: [
         { label: 'About This Portfolio', action: () => openApp('experience') },
         { divider: true, label: '' },
-        { label: 'View Projects', shortcut: '⌘1', action: () => openApp('projects') },
+        { label: 'View Projects', action: () => openApp('projects') },
         { label: 'View Résumé', action: () => openApp('resume') },
-        { label: 'Contact', shortcut: '⌘2', action: () => openApp('contact') },
+        { label: 'Contact', action: () => openApp('contact') },
         { divider: true, label: '' },
         { label: 'Log Out', action: () => logout() },
       ],
       File: [
         { label: 'New Terminal', shortcut: '⌘⇧L', action: () => openApp('terminal') },
-        { label: 'New Assistant Chat', shortcut: '⌘⇧A', action: () => openApp('assistant') },
+        { label: 'New Assistant Chat', shortcut: '⌘⇧K', action: () => openApp('assistant') },
         { divider: true, label: '' },
         { label: 'Open Résumé', action: () => openApp('resume') },
         { label: 'Download Résumé', action: () => downloadResume() },
         { divider: true, label: '' },
         {
           label: 'Close Window',
-          shortcut: '⌘W',
+          shortcut: 'Esc',
           disabled: !hasActive,
           action: () => activeId && closeApp(activeId),
         },
@@ -105,13 +105,11 @@ export function MenuBar() {
           label: activeId && windows.find((w) => w.id === activeId)?.maximized
             ? 'Exit Full Screen'
             : 'Enter Full Screen',
-          shortcut: '⌃⌘F',
           disabled: !hasActive,
           action: () => activeId && toggleMaximize(activeId),
         },
         {
           label: 'Minimize',
-          shortcut: '⌘M',
           disabled: !hasActive,
           action: () => activeId && minimizeApp(activeId),
         },
@@ -174,8 +172,22 @@ export function MenuBar() {
     >
       <div ref={menuRef} className="relative flex min-w-0 items-center gap-0.5 sm:gap-1">
         <div className="flex shrink-0 items-center gap-2 px-1 font-semibold tracking-tight sm:px-2">
-          <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary font-mono text-[9px] font-bold text-primary-foreground">
-            N
+          <span className="flex h-4 w-4 items-center justify-center rounded-[5px] bg-primary text-primary-foreground">
+            <svg viewBox="0 0 24 24" fill="none" className="h-2.5 w-2.5" aria-hidden>
+              <path
+                d="M7 8l4 4-4 4"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M13 16h4"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
           </span>
           <span className="hidden text-foreground sm:inline">CORE</span>
         </div>
@@ -186,7 +198,7 @@ export function MenuBar() {
           className="rounded-md px-2 py-1.5 font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground md:hidden"
           aria-label="Open Spotlight"
         >
-          <span className="font-mono text-[11px] text-primary">⌘K</span>
+          <span className="font-mono text-[11px] text-primary">⌘J</span>
         </button>
 
         <button
