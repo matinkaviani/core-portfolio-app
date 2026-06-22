@@ -50,7 +50,7 @@
 
 :root {
   color-scheme: dark;
-  /* Near-black desk surface with subtle warmth, Linear/Vercel inspired */
+  /* Near-black desk surface with subtle warmth */
   --background: oklch(0.16 0.004 270);
   --foreground: oklch(0.96 0.002 270);
   --card: oklch(0.205 0.004 270);

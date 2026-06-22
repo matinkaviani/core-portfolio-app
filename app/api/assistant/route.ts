@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const model = getAssistantModel()
   if (!model) {
     console.error(
-      '[assistant] missing AI credentials — set GROQ_API_KEY as a Cloudflare Worker secret (or AI_GATEWAY_API_KEY on Vercel)',
+      '[assistant] missing AI credentials — set GROQ_API_KEY as a Cloudflare Worker secret (or AI_GATEWAY_API_KEY)',
     )
     return new Response(
       JSON.stringify({ error: 'assistant_unavailable', reason: 'missing_credentials' }),

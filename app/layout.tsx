@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
   title: 'CORE — Portfolio OS',
   description:
     'CORE is a portfolio that feels like a lightweight operating system — terminal, AI assistant, projects, experience, and contact, all in one desktop.',
-  generator: 'v0.app',
 }
 
 export const viewport: Viewport = {
@@ -36,7 +34,6 @@ export default function RootLayout({
     >
       <body className="bg-background font-sans antialiased">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
