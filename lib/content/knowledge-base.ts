@@ -1,4 +1,5 @@
 import type { PortfolioData } from '@/lib/content/load-portfolio'
+import type { ProjectItem } from '@/lib/os-data'
 
 export interface KnowledgeChunk {
   id: string
@@ -6,6 +7,13 @@ export interface KnowledgeChunk {
   title: string
   text: string
   keywords: string[]
+}
+
+/** Legacy or informal names that map to a project id. */
+export const PROJECT_ALIASES: Record<string, string> = {
+  'trading platform': 'qaay',
+  'crypto dashboard': 'qaay',
+  'finance dashboard': 'qaay',
 }
 
 function tokenize(text: string): string[] {
@@ -54,14 +62,22 @@ export function buildKnowledgeChunks(portfolio: PortfolioData): KnowledgeChunk[]
       .map(([heading, value]) => `## ${heading}\n${value}`)
       .join('\n\n')
 
-    chunks.push(
-      buildChunk(
-        `project-${project.id}`,
-        `projects/${project.id}.md`,
-        project.name,
-        `# ${project.name}\n${body}`,
-      ),
+    const aliases = Object.entries(PROJECT_ALIASES)
+      .filter(([, id]) => id === project.id)
+      .map(([alias]) => alias)
+
+    const chunk = buildChunk(
+      `project-${project.id}`,
+      `projects/${project.id}.md`,
+      project.name,
+      `# ${project.name}\n${body}`,
     )
+
+    if (aliases.length) {
+      chunk.keywords.push(...aliases.flatMap((alias) => tokenize(alias)))
+    }
+
+    chunks.push(chunk)
   }
 
   return chunks
@@ -78,20 +94,30 @@ export function retrieveKnowledge(
   query: string,
   limit = 6,
 ): KnowledgeChunk[] {
+  const q = query.toLowerCase().trim()
   const tokens = tokenize(query)
   if (!tokens.length) {
     return buildKnowledgeChunks(portfolio).slice(0, limit)
   }
 
+  const aliasBoost = new Map<string, number>()
+  for (const [alias, id] of Object.entries(PROJECT_ALIASES)) {
+    if (q.includes(alias)) {
+      aliasBoost.set(`project-${id}`, 20)
+    }
+  }
+
   const scored = buildKnowledgeChunks(portfolio)
     .map((chunk) => {
-      const score = tokens.reduce(
-        (total, token) =>
-          total +
-          (chunk.keywords.includes(token) ? 2 : 0) +
-          (chunk.text.toLowerCase().includes(token) ? 1 : 0),
-        0,
-      )
+      const score =
+        (aliasBoost.get(chunk.id) ?? 0) +
+        tokens.reduce(
+          (total, token) =>
+            total +
+            (chunk.keywords.includes(token) ? 2 : 0) +
+            (chunk.text.toLowerCase().includes(token) ? 1 : 0),
+          0,
+        )
       return { chunk, score }
     })
     .filter((entry) => entry.score > 0)
@@ -107,4 +133,35 @@ export function formatRetrievedContext(chunks: KnowledgeChunk[]): string {
   return chunks
     .map((chunk) => `### ${chunk.title} (${chunk.source})\n${chunk.text}`)
     .join('\n\n')
+}
+
+export function findProjectByQuery(
+  projects: ProjectItem[],
+  query: string,
+): ProjectItem | undefined {
+  const q = query.toLowerCase().trim()
+
+  for (const [alias, id] of Object.entries(PROJECT_ALIASES)) {
+    if (q.includes(alias)) {
+      const match = projects.find((p) => p.id === id)
+      if (match) return match
+    }
+  }
+
+  return projects.find(
+    (p) =>
+      q.includes(p.name.toLowerCase()) ||
+      q.includes(p.id.replace(/-/g, ' ')) ||
+      q.includes(p.id),
+  )
+}
+
+export function formatProjectAliases(portfolio: PortfolioData): string {
+  return Object.entries(PROJECT_ALIASES)
+    .map(([alias, id]) => {
+      const project = portfolio.projects.find((p) => p.id === id)
+      return project ? `- "${alias}" → ${project.name}` : null
+    })
+    .filter(Boolean)
+    .join('\n')
 }

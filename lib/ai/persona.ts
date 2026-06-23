@@ -3,6 +3,7 @@ import {
   buildKnowledgeContext,
   retrieveKnowledge,
   formatRetrievedContext,
+  formatProjectAliases,
 } from '@/lib/content/knowledge-base'
 
 const UNKNOWN_RESPONSE = "I don't have enough information about that."
@@ -35,6 +36,8 @@ export function buildSystemPrompt(portfolio: PortfolioData, query?: string): str
     .map((group) => `- ${group.name}: ${group.skills.join(', ')}`)
     .join('\n')
 
+  const aliases = formatProjectAliases(portfolio)
+
   return `${portfolio.aiInstructions.trim()}
 
 If a question cannot be answered from the knowledge below, respond exactly with: "${UNKNOWN_RESPONSE}"
@@ -51,6 +54,7 @@ ${skills}
 
 PROJECTS
 ${projects}
+${aliases ? `\nPROJECT ALIASES\n${aliases}` : ''}
 
 EXPERIENCE
 ${experience}

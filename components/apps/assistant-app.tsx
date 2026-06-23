@@ -138,7 +138,7 @@ export function AssistantApp() {
 
   const initialSuggestions = [
     `What does ${profile.name} work on?`,
-    'Tell me about the Trading Platform',
+    'Tell me about Qaay',
     'Summarize the experience',
     'How can I get in touch?',
   ]

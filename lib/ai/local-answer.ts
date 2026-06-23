@@ -2,6 +2,7 @@ import type { PortfolioData } from '@/lib/content/load-portfolio'
 import {
   retrieveKnowledge,
   formatRetrievedContext,
+  findProjectByQuery,
 } from '@/lib/content/knowledge-base'
 
 const UNKNOWN_RESPONSE = "I don't have enough information about that."
@@ -39,12 +40,7 @@ export function localAnswer(portfolio: PortfolioData, query: string): string {
       .join('\n')
   }
 
-  const project = projects.find(
-    (p) =>
-      q.includes(p.name.toLowerCase()) ||
-      q.includes(p.id.replace(/-/g, ' ')) ||
-      q.includes(p.id),
-  )
+  const project = findProjectByQuery(projects, q)
   if (project) {
     const challenges = project.challenges?.length
       ? `\n\nKey challenges: ${project.challenges.join('; ')}.`
@@ -61,7 +57,7 @@ export function localAnswer(portfolio: PortfolioData, query: string): string {
     )
   }
 
-  if (/(who|about|bio)/.test(q)) {
+  if (/(^who\b|about (you|him|her|them)\b|\bbio\b)/.test(q)) {
     return `${profile.name} is a ${profile.role} based in ${profile.location}. ${profile.bio}`
   }
 

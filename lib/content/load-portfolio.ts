@@ -69,6 +69,11 @@ const PROJECT_META: Record<
     year: '2023',
     status: 'Live',
   },
+  qaay: {
+    category: 'Crypto Fintech',
+    year: '2025',
+    status: 'Live',
+  },
 }
 
 function readFile(filePath: string): string {
