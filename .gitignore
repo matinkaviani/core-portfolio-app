@@ -24,6 +24,9 @@ lib/content/portfolio.snapshot.json
 # OS
 .DS_Store
 
+# README capture artifacts
+docs/.capture/
+
 
 # pnpm
 .pnpm-store/
